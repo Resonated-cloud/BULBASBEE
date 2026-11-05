@@ -1,0 +1,2312 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100 selection:bg-amber-500 selection:text-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spelling Bee - Bulan Bahasa 2026</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- SheetJS (xlsx) CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif']
+          },
+          colors: {
+            bee: {
+              50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d',
+              400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309',
+              800: '#92400e', 900: '#78350f'
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
+
+    .bg-hex-pattern {
+      background-color: #020617;
+      background-image: radial-gradient(#d97706 0.7px, transparent 0.7px), radial-gradient(#d97706 0.7px, #020617 0.7px);
+      background-size: 28px 28px;
+      background-position: 0 0, 14px 14px;
+    }
+
+    .timer-ring-circle {
+      transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans bg-hex-pattern text-slate-100">
+
+  <!-- ==================== HEADER & NAVBAR ==================== -->
+  <header class="border-b border-amber-500/20 bg-slate-900/90 backdrop-blur-md sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+      
+      <!-- Brand & Event Banner -->
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-300 flex items-center justify-center text-slate-950 font-black text-2xl shadow-lg shadow-amber-500/20">
+          <i class="fa-solid fa-hive"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-display font-extrabold text-xl tracking-tight text-white">SPELLING BEE</h1>
+            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 uppercase tracking-wider">Bulan Bahasa 2026</span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">National English Competition Wordmaster Trainer</p>
+        </div>
+      </div>
+
+      <!-- Controls: Target Spelling Mode, Accent, Audio FX, Hints, Upload -->
+      <div class="flex items-center gap-2">
+        <!-- Target Mode Selector -->
+        <div class="hidden lg:flex items-center bg-slate-800/80 p-1 rounded-xl border border-slate-700/80 text-xs font-semibold">
+          <span class="text-[10px] text-slate-400 uppercase font-bold px-2">Mode:</span>
+          <button id="targetModeBoth" onclick="setTargetMode('both')" class="px-2.5 py-1 rounded-lg transition bg-amber-500 text-slate-950 font-bold">Both</button>
+          <button id="targetModeUK" onclick="setTargetMode('uk')" class="px-2.5 py-1 rounded-lg transition text-slate-400 hover:text-white">UK Only</button>
+          <button id="targetModeUS" onclick="setTargetMode('us')" class="px-2.5 py-1 rounded-lg transition text-slate-400 hover:text-white">US Only</button>
+        </div>
+
+        <!-- Accent Selector -->
+        <div class="bg-slate-800/80 p-1 rounded-xl border border-slate-700/80 flex items-center text-xs font-semibold">
+          <button id="accentUS" onclick="setAccent('en-US')" class="px-2.5 py-1 rounded-lg transition bg-amber-500 text-slate-950 font-bold">
+            <i class="fa-solid fa-flag-usa mr-1"></i> US
+          </button>
+          <button id="accentUK" onclick="setAccent('en-GB')" class="px-2.5 py-1 rounded-lg transition text-slate-400 hover:text-white">
+            <i class="fa-solid fa-crown mr-1"></i> UK
+          </button>
+        </div>
+
+        <!-- Extra Hints Toggle Nav Button -->
+        <button id="hintNavBtn" onclick="toggleExtraHintsNav()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 text-xs font-semibold transition flex items-center gap-1.5" title="Toggle Extra Hints">
+          <i class="fa-solid fa-lightbulb"></i>
+          <span id="hintNavStatus">Hints: ON</span>
+        </button>
+
+        <!-- Mute Audio FX Button -->
+        <button id="soundFxBtn" onclick="toggleSoundFx()" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center justify-center text-sm" title="Toggle Sound FX">
+          <i id="soundFxIcon" class="fa-solid fa-volume-high text-amber-400"></i>
+        </button>
+
+        <!-- Excel Re-Upload Button -->
+        <label class="cursor-pointer text-xs font-semibold px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 transition flex items-center gap-2 shadow-md shadow-amber-500/10">
+          <i class="fa-solid fa-file-excel"></i>
+          <span class="hidden md:inline">Upload XLSX</span>
+          <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="hidden" onchange="handleExcelUpload(event)">
+        </label>
+        <span id="fileLoadedBadge" class="hidden text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-1 rounded-lg">File Active</span>
+        <button id="inspectWordsBtn" onclick="openWordBankInspector()" class="hidden px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 text-xs font-semibold transition flex items-center gap-1.5" title="View Extracted Words">
+          <i class="fa-solid fa-list-check"></i>
+          <span>Inspect Words</span>
+        </button>
+        <button onclick="resetToOfficialWordList()" class="px-2.5 py-1.5 rounded-xl bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-800 text-xs font-semibold transition flex items-center gap-1.5" title="Reset to Official Spreadsheet List">
+          <i class="fa-solid fa-rotate"></i>
+          <span class="hidden sm:inline">Reset Official List</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN GAME CONTAINER ==================== -->
+  <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center">
+
+    <!-- SETUP CARD (Shown at Start) -->
+    <div id="setupArea" class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-xl flex flex-col items-center">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-300 text-slate-950 flex items-center justify-center text-3xl mb-4 shadow-lg shadow-amber-500/20">
+        <i class="fa-solid fa-gamepad"></i>
+      </div>
+      <h2 class="font-display font-extrabold text-2xl sm:text-3xl text-white text-center">Spelling Bee Setup</h2>
+      <p class="text-sm text-slate-400 text-center mt-1 mb-6">Select difficulty, configure word limit, and begin your practice round.</p>
+
+      <!-- EXCEL DRAG & DROP ZONE -->
+      <div id="excelDropzone" class="w-full max-w-2xl bg-slate-950/80 border-2 border-dashed border-amber-500/40 hover:border-amber-400 rounded-2xl p-5 mb-8 transition flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer" onclick="document.getElementById('excelFileInput').click()">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-emerald-950 text-emerald-400 border border-emerald-800/80 flex items-center justify-center text-2xl shrink-0">
+            <i class="fa-solid fa-file-excel"></i>
+          </div>
+          <div>
+            <div class="text-sm font-bold text-white flex items-center gap-2">
+              <span>Import Official Excel Wordlist</span>
+              <span id="dropzoneStatusBadge" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono">XLSX / XLS</span>
+            </div>
+            <p id="dropzoneText" class="text-xs text-slate-400 mt-0.5">Click or drag & drop <strong class="text-amber-400">SPELLING BEE BULAN BAHASA 2026.xlsx</strong> here</p>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+          <button type="button" onclick="event.stopPropagation(); resetToOfficialWordList()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-xs rounded-xl transition border border-slate-700">
+            Reset Default
+          </button>
+          <button type="button" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition">
+            Browse File
+          </button>
+        </div>
+      </div>
+
+      <button type="button" onclick="startRoundFromSetup()" class="w-full max-w-2xl py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-extrabold text-lg transition shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2">
+        <span>Start Spelling Bee Round</span>
+        <i class="fa-solid fa-play text-sm"></i>
+      </button>
+    </div>
+
+    <!-- GAMEPLAY AREA -->
+    <div id="gamePlayArea" class="hidden relative bg-slate-900/90 border border-slate-800/90 rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-xl flex flex-col items-center">
+      
+      <!-- LEVEL TABS & MID-ROUND SETTINGS BAR -->
+      <div class="w-full mb-6 flex flex-col gap-3 bg-slate-950/80 p-3 rounded-2xl border border-slate-800">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <!-- Level Switcher Tabs -->
+          <div class="flex items-center gap-2 w-full md:w-auto">
+            <button onclick="changeLevelMidRound(1)" id="midLevelBtn1" class="flex-1 md:flex-initial px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-amber-500 text-slate-950">
+              Level 1
+            </button>
+            <button onclick="changeLevelMidRound(2)" id="midLevelBtn2" class="flex-1 md:flex-initial px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-slate-800 text-slate-400 hover:text-white">
+              Level 2
+            </button>
+            <button onclick="changeLevelMidRound(3)" id="midLevelBtn3" class="flex-1 md:flex-initial px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-slate-800 text-slate-400 hover:text-white">
+              Level 3
+            </button>
+          </div>
+
+          <!-- Mid-Round Settings Toggle Button & Scoreboard Metrics -->
+          <div class="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto">
+            <button onclick="toggleMidRoundSettingsPanel()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 text-xs font-bold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-gear"></i>
+              <span>Round Settings</span>
+            </button>
+
+            <div class="flex items-center gap-3 text-xs font-bold">
+              <span class="text-emerald-400">Correct: <span id="statCorrect">0</span></span>
+              <span class="text-rose-400">Incorrect: <span id="statIncorrect">0</span></span>
+              <span class="text-amber-400">Score: <span id="statScore">0</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Collapsible Mid-Round Settings Drawer -->
+        <div id="midRoundSettingsPanel" class="hidden pt-3 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+          <!-- Words Limit Mid Round -->
+          <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Adjust Words Limit (1-200)</label>
+            <div class="flex items-center gap-2">
+              <input type="number" id="midRoundLimitInput" min="1" max="200" value="20" onchange="updateMidRoundWordLimit(this.value)" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-white font-bold w-16 text-center focus:outline-none focus:border-amber-500">
+              <div class="flex gap-1">
+                <button onclick="updateMidRoundWordLimit(10)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[10px] text-slate-300">10</button>
+                <button onclick="updateMidRoundWordLimit(20)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[10px] text-slate-300">20</button>
+                <button onclick="updateMidRoundWordLimit(50)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[10px] text-slate-300">50</button>
+                <button onclick="updateMidRoundWordLimit(100)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[10px] text-slate-300">100</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Target Mode Mid Round -->
+          <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Target Spelling Mode</label>
+            <div class="flex items-center gap-1">
+              <button onclick="setTargetMode('both')" class="flex-1 py-1 rounded bg-amber-500 text-slate-950 font-bold text-[10px] text-center">Both</button>
+              <button onclick="setTargetMode('uk')" class="flex-1 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[10px] text-center">UK</button>
+              <button onclick="setTargetMode('us')" class="flex-1 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[10px] text-center">US</button>
+            </div>
+          </div>
+
+          <!-- Accent & Hints Toggle Mid Round -->
+          <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between gap-2">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase">Accent & Hints</label>
+              <div class="text-[11px] text-slate-300 mt-0.5">Quick Adjustments</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="setAccent(gameState.selectedAccent === 'en-US' ? 'en-GB' : 'en-US')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-400 text-[10px] font-bold">
+                Switch Accent
+              </button>
+              <button onclick="toggleExtraHintsNav()" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-400 text-[10px] font-bold">
+                Toggle Hints
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Bar & Timer Row -->
+      <div class="w-full flex items-center justify-between mb-8 gap-4">
+        <!-- Word Progress Badge -->
+        <div class="flex items-center gap-2 text-xs font-semibold text-slate-300 bg-slate-800/80 px-3.5 py-2 rounded-full border border-slate-700/60">
+          <i class="fa-solid fa-list-check text-amber-400"></i>
+          <span>Word <span id="currentWordIndex" class="text-white font-bold">1</span> of <span id="totalLevelWords" class="text-white font-bold">20</span></span>
+        </div>
+
+        <!-- Difference / Category Tag -->
+        <div id="diffTypeBadge" class="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
+          <i class="fa-solid fa-language"></i> <span id="diffTypeText">Standard Vocabulary</span>
+        </div>
+
+        <!-- 45-Second Circular SVG Countdown Timer -->
+        <div class="relative w-16 h-16 flex items-center justify-center">
+          <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" stroke="#1e293b" stroke-width="8" fill="transparent" />
+            <circle id="timerCircle" class="timer-ring-circle" cx="50" cy="50" r="40" stroke="#f59e0b" stroke-width="8" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="0" stroke-linecap="round" />
+          </svg>
+          <span id="timerText" class="absolute font-display font-black text-lg text-white">45</span>
+        </div>
+      </div>
+
+      <!-- AUDIO CONTROL HUB -->
+      <div class="flex flex-col items-center mb-8">
+        <div class="flex items-center gap-3 mb-3">
+          <!-- Main Normal Audio Play Button -->
+          <button id="playAudioBtn" onclick="playCurrentWordAudio(1.0, false)" class="group relative w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-300 hover:from-amber-400 hover:to-yellow-200 text-slate-950 flex items-center justify-center shadow-xl shadow-amber-500/20 transition-all duration-300 transform hover:scale-105 active:scale-95 focus:outline-none" title="Listen Normal Speed">
+            <i id="audioIcon" class="fa-solid fa-volume-high text-3xl sm:text-4xl transition-transform group-hover:scale-110"></i>
+          </button>
+
+          <!-- Slow Audio Play Button -->
+          <button id="playSlowBtn" onclick="playCurrentWordAudio(0.5, false)" class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 flex flex-col items-center justify-center transition active:scale-95 shadow-md" title="Listen Slow Speed (0.5x)">
+            <i class="fa-solid fa-gauge-low text-base"></i>
+            <span class="text-[9px] font-black uppercase mt-0.5">Slow</span>
+          </button>
+        </div>
+
+        <div class="text-center">
+          <p class="text-xs sm:text-sm font-medium text-amber-300 flex items-center justify-center gap-2">
+            <span id="audioPlayBadge" class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-md text-xs font-bold">2 / 2 Plays Left</span>
+          </p>
+          <p class="text-[11px] text-slate-500 mt-1">Press <kbd class="px-1.5 py-0.5 text-[10px] bg-slate-800 text-slate-300 rounded border border-slate-700 font-mono">Space</kbd> or <kbd class="px-1.5 py-0.5 text-[10px] bg-slate-800 text-slate-300 rounded border border-slate-700 font-mono">Alt+A</kbd> to replay</p>
+        </div>
+      </div>
+
+      <!-- ACTION BAR: DEFINITION, SENTENCE & SKIP -->
+      <div class="flex flex-wrap items-center justify-center gap-3 mb-8">
+        <button type="button" onclick="openHintModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs sm:text-sm font-semibold transition flex items-center gap-2 shadow-sm">
+          <i class="fa-solid fa-book-open text-amber-400"></i>
+          <span>Ask Definition</span>
+        </button>
+
+        <button type="button" onclick="openExampleSentenceModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs sm:text-sm font-semibold transition flex items-center gap-2 shadow-sm">
+          <i class="fa-solid fa-quote-left text-amber-400"></i>
+          <span>Example Sentence</span>
+        </button>
+
+        <button type="button" onclick="skipWord()" class="px-4 py-2.5 rounded-xl bg-slate-800/80 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 border border-slate-700/80 hover:border-rose-800/50 text-xs sm:text-sm font-semibold transition flex items-center gap-2">
+          <i class="fa-solid fa-forward-step"></i>
+          <span>Skip Word</span>
+        </button>
+      </div>
+
+      <!-- SPELLING INPUT FORM -->
+      <form id="spellingForm" onsubmit="evaluateSubmission(event)" class="w-full max-w-md flex flex-col gap-4">
+        <div class="relative">
+          <input type="text" id="spellingInput" autocomplete="off" spellcheck="false" placeholder="Type word spelling here..." class="w-full bg-slate-950 border-2 border-slate-700 focus:border-amber-500 text-white font-display text-xl sm:text-2xl text-center tracking-widest px-4 py-4 rounded-2xl focus:outline-none transition-all duration-200 placeholder:text-slate-600 placeholder:tracking-normal placeholder:text-base">
+        </div>
+
+        <button type="submit" id="submitBtn" class="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-extrabold text-lg transition shadow-lg shadow-amber-500/15 flex items-center justify-center gap-2 active:scale-[0.99]">
+          <span>Submit Spelling</span>
+          <i class="fa-solid fa-paper-plane text-sm"></i>
+        </button>
+      </form>
+
+      <!-- RESULT & MISTAKE DIFF BREAKDOWN CARD -->
+      <div id="feedbackCard" class="hidden w-full max-w-xl mt-6 p-6 rounded-2xl border border-slate-800 bg-slate-950/90 shadow-2xl transition-all duration-300">
+        <!-- Status Header -->
+        <div id="feedbackStatusHeader" class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+          <div id="feedbackBadge" class="flex items-center gap-2 text-base font-bold"></div>
+          <button onclick="playCurrentWordAudio(1.0, true)" class="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 font-semibold">
+            <i class="fa-solid fa-volume-low"></i> Replay Word
+          </button>
+        </div>
+
+        <!-- Both UK and US Real Words Display -->
+        <div class="mb-4 bg-slate-900/80 p-3.5 rounded-xl border border-slate-800">
+          <span class="text-[11px] text-slate-400 uppercase tracking-wider font-bold block mb-1">Accepted Target Words</span>
+          <div class="flex flex-wrap items-center gap-3 text-base sm:text-lg font-display font-extrabold">
+            <span class="text-emerald-400 flex items-center gap-1.5"><i class="fa-solid fa-crown text-xs text-slate-400"></i> UK: <span id="ukWordDisplay" class="text-white"></span></span>
+            <span class="text-slate-600">|</span>
+            <span class="text-blue-400 flex items-center gap-1.5"><i class="fa-solid fa-flag-usa text-xs text-slate-400"></i> US: <span id="usWordDisplay" class="text-white"></span></span>
+          </div>
+        </div>
+
+        <!-- Sequence Alignment Character Diff -->
+        <div id="diffContainer" class="mb-5">
+          <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold block mb-2">Character Alignment Breakdown</span>
+          <div id="diffOutput" class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-lg font-mono overflow-x-auto"></div>
+        </div>
+
+        <!-- Next Word Button -->
+        <button id="nextWordBtn" onclick="advanceToNextWord()" class="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm transition flex items-center justify-center gap-2 border border-slate-700">
+          <span>Continue to Next Word (Enter / Space)</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- SUMMARY OVERLAY CARD -->
+    <div id="summaryArea" class="hidden bg-slate-900/95 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-xl flex flex-col items-center">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-300 text-slate-950 flex items-center justify-center text-3xl mb-4 shadow-lg shadow-amber-500/20">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+      
+      <h2 class="font-display font-extrabold text-2xl sm:text-3xl text-white text-center">Round Completed!</h2>
+      <p id="summarySubtitle" class="text-sm text-slate-400 text-center mt-1 mb-6">Performance summary for Bulan Bahasa 2026 Spelling Bee</p>
+
+      <!-- Stats Metrics Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 w-full max-w-2xl mb-8">
+        <div class="bg-slate-950/70 border border-slate-800 p-4 rounded-2xl text-center">
+          <span class="text-xs text-slate-400 uppercase font-semibold">Accuracy</span>
+          <div id="summaryAccuracy" class="text-2xl sm:text-3xl font-display font-extrabold text-amber-400 mt-1">0%</div>
+        </div>
+        <div class="bg-slate-950/70 border border-slate-800 p-4 rounded-2xl text-center">
+          <span class="text-xs text-slate-400 uppercase font-semibold">Total Score</span>
+          <div id="summaryScore" class="text-2xl sm:text-3xl font-display font-extrabold text-emerald-400 mt-1">0</div>
+        </div>
+        <div class="bg-slate-950/70 border border-slate-800 p-4 rounded-2xl text-center">
+          <span class="text-xs text-slate-400 uppercase font-semibold">Correct Words</span>
+          <div id="summaryCorrect" class="text-2xl sm:text-3xl font-display font-extrabold text-emerald-400 mt-1">0</div>
+        </div>
+        <div class="bg-slate-950/70 border border-slate-800 p-4 rounded-2xl text-center">
+          <span class="text-xs text-slate-400 uppercase font-semibold">Incorrect / Skipped</span>
+          <div id="summaryIncorrect" class="text-2xl sm:text-3xl font-display font-extrabold text-rose-400 mt-1">0</div>
+        </div>
+      </div>
+
+      <!-- Word Performance List -->
+      <div class="w-full max-w-2xl bg-slate-950/80 border border-slate-800 rounded-2xl p-4 mb-8">
+        <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Full Round Attempt Log</h3>
+          <span id="summaryWordCount" class="text-xs font-bold text-amber-400">0 Words</span>
+        </div>
+        
+        <div id="summaryWordsList" class="max-h-64 overflow-y-auto space-y-2 pr-1">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Summary Action Buttons -->
+      <div class="flex flex-wrap justify-center gap-3 w-full max-w-md">
+        <button id="masteryBtn" onclick="startMasteryMode()" class="hidden w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-bold text-sm transition shadow-lg flex items-center justify-center gap-2 mb-2">
+          <i class="fa-solid fa-fire"></i> Mastery Mode (Repeat Missed Words)
+        </button>
+        <button onclick="returnToSetup()" class="flex-1 py-3 px-5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm transition border border-slate-700 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-gear"></i> Setup / Change Level
+        </button>
+        <button onclick="startRoundFromSetup()" class="flex-1 py-3 px-5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition shadow-lg flex items-center justify-center gap-2">
+          <i class="fa-solid fa-rotate-right"></i> Play Again
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==================== DICTIONARY HINT MODAL ==================== -->
+  <div id="hintModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl p-6 shadow-2xl relative transform transition-all">
+      <button onclick="closeHintModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg border border-amber-500/30">
+          <i class="fa-solid fa-book-open"></i>
+        </div>
+        <div>
+          <h3 class="font-display font-extrabold text-xl text-white">Dictionary Hint</h3>
+          <p class="text-xs text-slate-400">Definition & Phonetic Reference</p>
+        </div>
+      </div>
+
+      <div id="hintModalContent" class="space-y-4 text-sm">
+        <!-- Injected via JS -->
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-slate-800 flex justify-end">
+        <button onclick="closeHintModal()" class="px-5 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider hover:bg-amber-400 transition">
+          Got It
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== EXAMPLE SENTENCE MODAL ==================== -->
+  <div id="sentenceModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl p-6 shadow-2xl relative transform transition-all">
+      <button onclick="closeExampleSentenceModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg border border-amber-500/30">
+          <i class="fa-solid fa-quote-left"></i>
+        </div>
+        <div>
+          <h3 class="font-display font-extrabold text-xl text-white">Example Sentence Clue</h3>
+          <p class="text-xs text-slate-400">Contextual Usage (Target Word Masked)</p>
+        </div>
+      </div>
+
+      <div id="sentenceModalContent" class="space-y-4 text-sm">
+        <!-- Injected via JS -->
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-slate-800 flex justify-end">
+        <button onclick="closeExampleSentenceModal()" class="px-5 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider hover:bg-amber-400 transition">
+          Got It
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== EXTRACTED WORD BANK INSPECTOR MODAL ==================== -->
+  <div id="inspectorModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-3xl p-6 shadow-2xl relative transform transition-all flex flex-col max-h-[85vh]">
+      <button onclick="closeWordBankInspector()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg border border-amber-500/30">
+          <i class="fa-solid fa-list-check"></i>
+        </div>
+        <div>
+          <h3 class="font-display font-extrabold text-xl text-white">Extracted Word Bank Inspector</h3>
+          <p class="text-xs text-slate-400">Verify extracted words from uploaded Excel file</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 mb-3">
+        <input type="text" id="inspectorSearch" oninput="filterInspectorWords()" placeholder="Search extracted words..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+        <div class="text-xs text-slate-400 font-semibold px-2">
+          Total: <span id="inspectorTotalCount" class="text-amber-400 font-bold">0</span> words
+        </div>
+      </div>
+
+      <div id="inspectorWordsList" class="flex-1 overflow-y-auto space-y-2 pr-1 border border-slate-800 rounded-2xl bg-slate-950/60 p-3">
+        <!-- Injected via JS -->
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-800 flex justify-end">
+        <button onclick="closeWordBankInspector()" class="px-5 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider hover:bg-amber-400 transition">
+          Close Inspector
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none bg-slate-800 text-white border border-slate-700 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3">
+    <i id="toastIcon" class="fa-solid fa-circle-info text-amber-400"></i>
+    <span id="toastMsg" class="text-xs font-semibold">Notification</span>
+  </div>
+
+  <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+  <script>
+    /* PRELOADED OFFICIAL BULAN BAHASA 2026 DATASET (600 WORDS TOTAL) */
+    const raw600WordDataset = {
+      '1': [
+        { uk: "aeroplane", us: "airplane", cefr: "A1-A2", type: "Spelling Variant", def: "A powered flying vehicle with fixed wings." },
+        { uk: "afternoon", us: "afternoon", cefr: "A1-A2", type: "Standard Vocabulary", def: "The time from noon or lunchtime to evening." },
+        { uk: "airport", us: "airport", cefr: "A1-A2", type: "Standard Vocabulary", def: "A complex of runways and buildings for takeoff and landing." },
+        { uk: "always", us: "always", cefr: "A1-A2", type: "Standard Vocabulary", def: "At all times; on all occasions." },
+        { uk: "angry", us: "angry", cefr: "A1-A2", type: "Standard Vocabulary", def: "Feeling or showing strong annoyance or displeasure." },
+        { uk: "animal", us: "animal", cefr: "A1-A2", type: "Standard Vocabulary", def: "A living organism that feeds on organic matter." },
+        { uk: "answer", us: "answer", cefr: "A1-A2", type: "Standard Vocabulary", def: "A thing said, written, or done as a reaction to a question." },
+        { uk: "apologise", us: "apologize", cefr: "A1-A2", type: "-ise / -ize", def: "Express regret for something one has done wrong." },
+        { uk: "apple", us: "apple", cefr: "A1-A2", type: "Standard Vocabulary", def: "A round edible fruit with red, yellow, or green skin." },
+        { uk: "aunt", us: "aunt", cefr: "A1-A2", type: "Standard Vocabulary", def: "The sister of one's father or mother." },
+        { uk: "autumn", us: "autumn", cefr: "A1-A2", type: "Standard Vocabulary", def: "The season after summer and before winter." },
+        { uk: "banana", us: "banana", cefr: "A1-A2", type: "Standard Vocabulary", def: "A long curved fruit with yellow skin." },
+        { uk: "bathroom", us: "bathroom", cefr: "A1-A2", type: "Standard Vocabulary", def: "A room containing a toilet and sink or bath." },
+        { uk: "beach", us: "beach", cefr: "A1-A2", type: "Standard Vocabulary", def: "A pebbly or sandy shore by the ocean." },
+        { uk: "beautiful", us: "beautiful", cefr: "A1-A2", type: "Standard Vocabulary", def: "Pleasing the senses or mind aesthetically." },
+        { uk: "because", us: "because", cefr: "A1-A2", type: "Standard Vocabulary", def: "For the reason that; since." },
+        { uk: "bedroom", us: "bedroom", cefr: "A1-A2", type: "Standard Vocabulary", def: "A room used primarily for sleeping." },
+        { uk: "behaviour", us: "behavior", cefr: "A1-A2", type: "-our / -or", def: "The way in which one acts or conducts oneself." },
+        { uk: "bicycle", us: "bicycle", cefr: "A1-A2", type: "Standard Vocabulary", def: "A vehicle consisting of two wheels held in a frame." },
+        { uk: "birthday", us: "birthday", cefr: "A1-A2", type: "Standard Vocabulary", def: "The anniversary of the day on which a person was born." },
+        { uk: "bought", us: "bought", cefr: "A1-A2", type: "Standard Vocabulary", def: "Past tense of buy." },
+        { uk: "bread", us: "bread", cefr: "A1-A2", type: "Standard Vocabulary", def: "Food made of flour, water, and yeast baked together." },
+        { uk: "breakfast", us: "breakfast", cefr: "A1-A2", type: "Standard Vocabulary", def: "The first meal of the day." },
+        { uk: "brother", us: "brother", cefr: "A1-A2", type: "Standard Vocabulary", def: "A male sibling." },
+        { uk: "brought", us: "brought", cefr: "A1-A2", type: "Standard Vocabulary", def: "Past tense of bring." },
+        { uk: "butter", us: "butter", cefr: "A1-A2", type: "Standard Vocabulary", def: "A pale yellow fatty substance made from milk." },
+        { uk: "cancelled", us: "canceled", cefr: "A1-A2", type: "Doubled Consonant -ll-", def: "Decided that an event will not take place." },
+        { uk: "caught", us: "caught", cefr: "A1-A2", type: "Standard Vocabulary", def: "Past tense of catch." },
+        { uk: "centimetre", us: "centimeter", cefr: "A1-A2", type: "-re / -er", def: "A metric unit of length equal to one hundredth of a metre." },
+        { uk: "centre", us: "center", cefr: "A1-A2", type: "-re / -er", def: "The point or part that is equally distant from all sides." },
+        { uk: "chair", us: "chair", cefr: "A1-A2", type: "Standard Vocabulary", def: "A separate seat for one person." },
+        { uk: "cheese", us: "cheese", cefr: "A1-A2", type: "Standard Vocabulary", def: "A food made from pressed milk curds." },
+        { uk: "cheque", us: "check", cefr: "A1-A2", type: "Spelling Variant", def: "A written order to a bank to pay a sum of money." },
+        { uk: "chicken", us: "chicken", cefr: "A1-A2", type: "Standard Vocabulary", def: "A domestic fowl kept for eggs or meat." },
+        { uk: "children", us: "children", cefr: "A1-A2", type: "Standard Vocabulary", def: "Plural of child." },
+        { uk: "chocolate", us: "chocolate", cefr: "A1-A2", type: "Standard Vocabulary", def: "A food preparation in the form of a paste or block made from roasted cocoa seeds." },
+        { uk: "clothes", us: "clothes", cefr: "A1-A2", type: "Standard Vocabulary", def: "Items worn to cover the body." },
+        { uk: "cloudy", us: "cloudy", cefr: "A1-A2", type: "Standard Vocabulary", def: "Covered with or characterized by clouds." },
+        { uk: "coffee", us: "coffee", cefr: "A1-A2", type: "Standard Vocabulary", def: "A hot drink made from roasted coffee beans." },
+        { uk: "colour", us: "color", cefr: "A1-A2", type: "-our / -or", def: "Visual perception enabling differentiation of red, green, blue, etc." },
+        { uk: "colourful", us: "colorful", cefr: "A1-A2", type: "-our / -or", def: "Having many or bright colours." },
+        { uk: "computer", us: "computer", cefr: "A1-A2", type: "Standard Vocabulary", def: "An electronic device for storing and processing data." },
+        { uk: "cosy", us: "cozy", cefr: "A1-A2", type: "Spelling Variant", def: "Comfortable, warm, and relaxed." },
+        { uk: "country", us: "country", cefr: "A1-A2", type: "Standard Vocabulary", def: "A nation with its own government, occupying a particular territory." },
+        { uk: "cousin", us: "cousin", cefr: "A1-A2", type: "Standard Vocabulary", def: "A child of one's uncle or aunt." },
+        { uk: "dancing", us: "dancing", cefr: "A1-A2", type: "Standard Vocabulary", def: "Moving rhythmically to music." },
+        { uk: "daughter", us: "daughter", cefr: "A1-A2", type: "Standard Vocabulary", def: "A female child in relation to her parents." },
+        { uk: "defence", us: "defense", cefr: "A1-A2", type: "-ce / -se", def: "The action of defending from attack." },
+        { uk: "different", us: "different", cefr: "A1-A2", type: "Standard Vocabulary", def: "Not the same as another or each other." },
+        { uk: "difficult", us: "difficult", cefr: "A1-A2", type: "Standard Vocabulary", def: "Needing much effort or skill to accomplish." },
+        { uk: "dinner", us: "dinner", cefr: "A1-A2", type: "Standard Vocabulary", def: "The main meal of the day, taken either at midday or in the evening." },
+        { uk: "doughnut", us: "donut", cefr: "A1-A2", type: "Spelling Variant", def: "A small fried cake of sweetened dough." },
+        { uk: "early", us: "early", cefr: "A1-A2", type: "Standard Vocabulary", def: "Happening or done before the usual or expected time." },
+        { uk: "eight", us: "eight", cefr: "A1-A2", type: "Standard Vocabulary", def: "Equivalent to the product of two and four; 8." },
+        { uk: "elephant", us: "elephant", cefr: "A1-A2", type: "Standard Vocabulary", def: "A heavy plant-eating mammal with a trunk and ivory tusks." },
+        { uk: "English", us: "English", cefr: "A1-A2", type: "Standard Vocabulary", def: "Relating to England or its language." },
+        { uk: "enough", us: "enough", cefr: "A1-A2", type: "Standard Vocabulary", def: "As much or as many as required." },
+        { uk: "evening", us: "evening", cefr: "A1-A2", type: "Standard Vocabulary", def: "The period of time at the end of the day." },
+        { uk: "every", us: "every", cefr: "A1-A2", type: "Standard Vocabulary", def: "Used to refer to all the individual members of a set." },
+        { uk: "everyone", us: "everyone", cefr: "A1-A2", type: "Standard Vocabulary", def: "Every person." },
+        { uk: "everything", us: "everything", cefr: "A1-A2", type: "Standard Vocabulary", def: "All things." },
+        { uk: "family", us: "family", cefr: "A1-A2", type: "Standard Vocabulary", def: "A group of one or two parents and their children." },
+        { uk: "father", us: "father", cefr: "A1-A2", type: "Standard Vocabulary", def: "A male parent." },
+        { uk: "favour", us: "favor", cefr: "A1-A2", type: "-our / -or", def: "An act of kindness beyond what is due or usual." },
+        { uk: "favourite", us: "favorite", cefr: "A1-A2", type: "-our / -or", def: "Preferred before all others of the same kind." },
+        { uk: "February", us: "February", cefr: "A1-A2", type: "Standard Vocabulary", def: "The second month of the year." },
+        { uk: "flavour", us: "flavor", cefr: "A1-A2", type: "-our / -or", def: "The distinctive taste of a food or drink." },
+        { uk: "football", us: "football", cefr: "A1-A2", type: "Standard Vocabulary", def: "A game played with a spherical ball between two teams." },
+        { uk: "forest", us: "forest", cefr: "A1-A2", type: "Standard Vocabulary", def: "A large area covered chiefly with trees and undergrowth." },
+        { uk: "friend", us: "friend", cefr: "A1-A2", type: "Standard Vocabulary", def: "A person with whom one has a bond of mutual affection." },
+        { uk: "friendly", us: "friendly", cefr: "A1-A2", type: "Standard Vocabulary", def: "Kind and pleasant." },
+        { uk: "garden", us: "garden", cefr: "A1-A2", type: "Standard Vocabulary", def: "A piece of ground used for growing flowers, fruit, or vegetables." },
+        { uk: "giraffe", us: "giraffe", cefr: "A1-A2", type: "Standard Vocabulary", def: "A tall African mammal with a very long neck." },
+        { uk: "grey", us: "gray", cefr: "A1-A2", type: "Spelling Variant", def: "A color intermediate between black and white." },
+        { uk: "guitar", us: "guitar", cefr: "A1-A2", type: "Standard Vocabulary", def: "A stringed musical instrument played with fingers or a plectrum." },
+        { uk: "happy", us: "happy", cefr: "A1-A2", type: "Standard Vocabulary", def: "Feeling or showing pleasure or contentment." },
+        { uk: "harbour", us: "harbor", cefr: "A1-A2", type: "-our / -or", def: "A place on the coast where vessels may find shelter." },
+        { uk: "holiday", us: "holiday", cefr: "A1-A2", type: "Standard Vocabulary", def: "An extended period of leisure and recreation." },
+        { uk: "honour", us: "honor", cefr: "A1-A2", type: "-our / -or", def: "High respect or great esteem." },
+        { uk: "horse", us: "horse", cefr: "A1-A2", type: "Standard Vocabulary", def: "A large plant-eating domesticated mammal." },
+        { uk: "hospital", us: "hospital", cefr: "A1-A2", type: "Standard Vocabulary", def: "An institution providing medical treatment." },
+        { uk: "house", us: "house", cefr: "A1-A2", type: "Standard Vocabulary", def: "A building for human habitation." },
+        { uk: "humour", us: "humor", cefr: "A1-A2", type: "-our / -or", def: "The quality of being amusing or comic." },
+        { uk: "hungry", us: "hungry", cefr: "A1-A2", type: "Standard Vocabulary", def: "Feeling or showing the need for food." },
+        { uk: "important", us: "important", cefr: "A1-A2", type: "Standard Vocabulary", def: "Of great significance or value." },
+        { uk: "interesting", us: "interesting", cefr: "A1-A2", type: "Standard Vocabulary", def: "Holding the attention; inviting interest." },
+        { uk: "island", us: "island", cefr: "A1-A2", type: "Standard Vocabulary", def: "A piece of land surrounded by water." },
+        { uk: "jacket", uk: "jacket", us: "jacket", cefr: "A1-A2", type: "Standard Vocabulary", def: "An outer garment extending to the waist or hips." },
+        { uk: "jewellery", us: "jewelry", cefr: "A1-A2", type: "Spelling Variant", def: "Personal ornaments such as necklaces or rings." },
+        { uk: "juice", us: "juice", cefr: "A1-A2", type: "Standard Vocabulary", def: "The liquid expressed from fruit or vegetables." },
+        { uk: "kerb", us: "curb", cefr: "A1-A2", type: "Spelling Variant", def: "A stone edging to a pavement or raised path." },
+        { uk: "kilometre", us: "kilometer", cefr: "A1-A2", type: "-re / -er", def: "A metric unit of length equal to 1000 metres." },
+        { uk: "kitchen", us: "kitchen", cefr: "A1-A2", type: "Standard Vocabulary", def: "A room where food is prepared and cooked." },
+        { uk: "knife", us: "knife", cefr: "A1-A2", type: "Standard Vocabulary", def: "An instrument for cutting consisting of a blade attached to a handle." },
+        { uk: "knock", us: "knock", cefr: "A1-A2", type: "Standard Vocabulary", def: "Strike a surface noisily to attract attention." },
+        { uk: "labelled", us: "labeled", cefr: "A1-A2", type: "Doubled Consonant -ll-", def: "Attached a label to something." },
+        { uk: "labour", us: "labor", cefr: "A1-A2", type: "-our / -or", def: "Work, especially hard physical work." },
+        { uk: "language", us: "language", cefr: "A1-A2", type: "Standard Vocabulary", def: "The principal method of human communication." },
+        { uk: "laugh", us: "laugh", cefr: "A1-A2", type: "Standard Vocabulary", def: "Make audible sounds expressive of amusement." },
+        { uk: "lemon", us: "lemon", cefr: "A1-A2", type: "Standard Vocabulary", def: "A yellow oval citrus fruit with acidic juice." },
+        { uk: "library", us: "library", cefr: "A1-A2", type: "Standard Vocabulary", def: "A building or room containing collections of books." },
+        { uk: "licence", us: "license", cefr: "A1-A2", type: "-ce / -se", def: "A permit from an authority to own or use something." },
+        { uk: "listen", us: "listen", cefr: "A1-A2", type: "Standard Vocabulary", def: "Give one's attention to a sound." },
+        { uk: "litre", us: "liter", cefr: "A1-A2", type: "-re / -er", def: "A metric unit of capacity equal to 1000 cubic centimetres." },
+        { uk: "lunch", us: "lunch", cefr: "A1-A2", type: "Standard Vocabulary", def: "A meal eaten in the middle of the day." },
+        { uk: "maths", us: "math", cefr: "A1-A2", type: "Spelling Variant", def: "Mathematics." },
+        { uk: "metre", us: "meter", cefr: "A1-A2", type: "-re / -er", def: "The fundamental unit of length in the metric system." },
+        { uk: "milk", us: "milk", cefr: "A1-A2", type: "Standard Vocabulary", def: "An opaque white fluid rich in fat and protein secreted by cows." },
+        { uk: "Monday", us: "Monday", cefr: "A1-A2", type: "Standard Vocabulary", def: "The day of the week before Tuesday." },
+        { uk: "monkey", us: "monkey", cefr: "A1-A2", type: "Standard Vocabulary", def: "A small to medium-sized primate." },
+        { uk: "morning", us: "morning", cefr: "A1-A2", type: "Standard Vocabulary", def: "The period of time between sunrise and noon." },
+        { uk: "mother", us: "mother", cefr: "A1-A2", type: "Standard Vocabulary", def: "A female parent." },
+        { uk: "mould", us: "mold", cefr: "A1-A2", type: "-our / -or", def: "A hollow container used to give shape to molten material." },
+        { uk: "mountain", us: "mountain", cefr: "A1-A2", type: "Standard Vocabulary", def: "A large natural elevation of the earth's surface." },
+        { uk: "mouse", us: "mouse", cefr: "A1-A2", type: "Standard Vocabulary", def: "A small rodent that typically has a pointed snout." },
+        { uk: "moustache", us: "mustache", cefr: "A1-A2", type: "Spelling Variant", def: "Hair grown on a man's upper lip." },
+        { uk: "mum", us: "mom", cefr: "A1-A2", type: "Spelling Variant", def: "Mother." },
+        { uk: "music", us: "music", cefr: "A1-A2", type: "Standard Vocabulary", def: "Vocal or instrumental sounds combined in harmony." },
+        { uk: "neighbour", us: "neighbor", cefr: "A1-A2", type: "-our / -or", def: "A person living next door or near." },
+        { uk: "neighbourhood", us: "neighborhood", cefr: "A1-A2", type: "-our / -or", def: "A district or community within a town." },
+        { uk: "omelette", us: "omelet", cefr: "A1-A2", type: "Spelling Variant", def: "A dish of beaten eggs cooked in a frying pan." },
+        { uk: "orange", us: "orange", cefr: "A1-A2", type: "Standard Vocabulary", def: "A round juicy citrus fruit with a tough bright reddish-yellow rind." },
+        { uk: "organise", us: "organize", cefr: "A1-A2", type: "-ise / -ize", def: "Arrange systematically into a structured whole." },
+        { uk: "paper", us: "paper", cefr: "A1-A2", type: "Standard Vocabulary", def: "Material manufactured in thin sheets from wood pulp." },
+        { uk: "pencil", us: "pencil", cefr: "A1-A2", type: "Standard Vocabulary", def: "An instrument for writing or drawing consisting of a thin stick of graphite." },
+        { uk: "people", us: "people", cefr: "A1-A2", type: "Standard Vocabulary", def: "Human beings in general." },
+        { uk: "picture", us: "picture", cefr: "A1-A2", type: "Standard Vocabulary", def: "A painting, drawing, or photograph." },
+        { uk: "popular", us: "popular", cefr: "A1-A2", type: "Standard Vocabulary", def: "Liked or admired by many people." },
+        { uk: "potato", us: "potato", cefr: "A1-A2", type: "Standard Vocabulary", def: "A starchy plant tuber used as a cooked vegetable." },
+        { uk: "programme", us: "program", cefr: "A1-A2", type: "-mme / -m", def: "A planned series of future events or performances." },
+        { uk: "pyjamas", us: "pajamas", cefr: "A1-A2", type: "Spelling Variant", def: "Loose-fitting trousers and jacket for sleeping." },
+        { uk: "question", us: "question", cefr: "A1-A2", type: "Standard Vocabulary", def: "A sentence worded so as to elicit information." },
+        { uk: "quiet", us: "quiet", cefr: "A1-A2", type: "Standard Vocabulary", def: "Making little or no noise." },
+        { uk: "rabbit", us: "rabbit", cefr: "A1-A2", type: "Standard Vocabulary", def: "A burrowing plant-eating mammal with long ears." },
+        { uk: "ready", us: "ready", cefr: "A1-A2", type: "Standard Vocabulary", def: "Fully prepared for action or use." },
+        { uk: "realise", us: "realize", cefr: "A1-A2", type: "-ise / -ize", def: "Become fully aware of something as a fact." },
+        { uk: "really", us: "really", cefr: "A1-A2", type: "Standard Vocabulary", def: "In actual fact; truly." },
+        { uk: "recognise", us: "recognize", cefr: "A1-A2", type: "-ise / -ize", def: "Identify someone or something from previous encounter." },
+        { uk: "rice", us: "rice", cefr: "A1-A2", type: "Standard Vocabulary", def: "A cereal grain used widely as food." },
+        { uk: "river", us: "river", cefr: "A1-A2", type: "Standard Vocabulary", def: "A large natural stream of water flowing in a channel." },
+        { uk: "running", us: "running", cefr: "A1-A2", type: "Standard Vocabulary", def: "The action of moving at a speed faster than a walk." },
+        { uk: "sandwich", us: "sandwich", cefr: "A1-A2", type: "Standard Vocabulary", def: "Two slices of bread with a filling between them." },
+        { uk: "Saturday", us: "Saturday", cefr: "A1-A2", type: "Standard Vocabulary", def: "The day of the week after Friday." },
+        { uk: "school", us: "school", cefr: "A1-A2", type: "Standard Vocabulary", def: "An institution for educating children." },
+        { uk: "September", us: "September", cefr: "A1-A2", type: "Standard Vocabulary", def: "The ninth month of the year." },
+        { uk: "sheep", us: "sheep", cefr: "A1-A2", type: "Standard Vocabulary", def: "A domesticated ruminant mammal with a thick woolly coat." },
+        { uk: "shoes", us: "shoes", cefr: "A1-A2", type: "Standard Vocabulary", def: "Coverings for the feet." },
+        { uk: "shopping", us: "shopping", cefr: "A1-A2", type: "Standard Vocabulary", def: "The activity of buying goods from shops." },
+        { uk: "sister", us: "sister", cefr: "A1-A2", type: "Standard Vocabulary", def: "A female sibling." },
+        { uk: "sleepy", us: "sleepy", cefr: "A1-A2", type: "Standard Vocabulary", def: "Needing or ready for sleep." },
+        { uk: "snow", us: "snow", cefr: "A1-A2", type: "Standard Vocabulary", def: "Atmospheric water vapour frozen into ice crystals." },
+        { uk: "soup", us: "soup", cefr: "A1-A2", type: "Standard Vocabulary", def: "A liquid dish made by boiling meat, fish, or vegetables." },
+        { uk: "spring", us: "spring", cefr: "A1-A2", type: "Standard Vocabulary", def: "The season after winter and before summer." },
+        { uk: "station", us: "station", cefr: "A1-A2", type: "Standard Vocabulary", def: "A stopping place on a railway line." },
+        { uk: "storey", us: "story", cefr: "A1-A2", type: "Spelling Variant", def: "A floor or level of a building." },
+        { uk: "strawberry", us: "strawberry", cefr: "A1-A2", type: "Standard Vocabulary", def: "A sweet soft red fruit with seed-studded surface." },
+        { uk: "street", us: "street", cefr: "A1-A2", type: "Standard Vocabulary", def: "A public road in a city, town, or village." },
+        { uk: "student", us: "student", cefr: "A1-A2", type: "Standard Vocabulary", def: "A person who is studying at a school or college." },
+        { uk: "sugar", us: "sugar", cefr: "A1-A2", type: "Standard Vocabulary", def: "A sweet crystalline substance obtained from sugar cane or beet." },
+        { uk: "summer", us: "summer", cefr: "A1-A2", type: "Standard Vocabulary", def: "The warmest season of the year." },
+        { uk: "sunny", us: "sunny", cefr: "A1-A2", type: "Standard Vocabulary", def: "Bright with sunlight." },
+        { uk: "swimming", us: "swimming", cefr: "A1-A2", type: "Standard Vocabulary", def: "The sport or activity of propelling oneself through water." },
+        { uk: "table", us: "table", cefr: "A1-A2", type: "Standard Vocabulary", def: "A piece of furniture with a flat top supported by legs." },
+        { uk: "teacher", us: "teacher", cefr: "A1-A2", type: "Standard Vocabulary", def: "A person who teaches, especially in a school." },
+        { uk: "telephone", us: "telephone", cefr: "A1-A2", type: "Standard Vocabulary", def: "A system for transmitting sound over distance." },
+        { uk: "television", us: "television", cefr: "A1-A2", type: "Standard Vocabulary", def: "A system for transmitting visual images and sound." },
+        { uk: "theatre", us: "theater", cefr: "A1-A2", type: "-re / -er", def: "A building in which plays or movies are performed." },
+        { uk: "thirsty", us: "thirsty", cefr: "A1-A2", type: "Standard Vocabulary", def: "Feeling a need to drink." },
+        { uk: "thought", us: "thought", cefr: "A1-A2", type: "Standard Vocabulary", def: "An idea or opinion produced by thinking." },
+        { uk: "through", us: "through", cefr: "A1-A2", type: "Standard Vocabulary", def: "Moving in one side and out of the other side." },
+        { uk: "Thursday", us: "Thursday", cefr: "A1-A2", type: "Standard Vocabulary", def: "The day of the week after Wednesday." },
+        { uk: "tiger", us: "tiger", cefr: "A1-A2", type: "Standard Vocabulary", def: "A large solitary Asian wild cat with a yellow coat striped with black." },
+        { uk: "tired", us: "tired", cefr: "A1-A2", type: "Standard Vocabulary", def: "In need of sleep or rest; weary." },
+        { uk: "together", us: "together", cefr: "A1-A2", type: "Standard Vocabulary", def: "With or in proximity to another person or people." },
+        { uk: "tomato", us: "tomato", cefr: "A1-A2", type: "Standard Vocabulary", def: "A glossy red, pulpy edible fruit eaten as a vegetable." },
+        { uk: "tomorrow", us: "tomorrow", cefr: "A1-A2", type: "Standard Vocabulary", def: "On the day after today." },
+        { uk: "tonight", us: "tonight", cefr: "A1-A2", type: "Standard Vocabulary", def: "On the present night." },
+        { uk: "travelled", us: "traveled", cefr: "A1-A2", type: "Doubled Consonant -ll-", def: "Went from one place to another." },
+        { uk: "traveller", us: "traveler", cefr: "A1-A2", type: "Doubled Consonant -ll-", def: "A person who is travelling or who often travels." },
+        { uk: "travelling", us: "traveling", cefr: "A1-A2", type: "Doubled Consonant -ll-", def: "The activity of visiting places." },
+        { uk: "trousers", us: "trousers", cefr: "A1-A2", type: "Standard Vocabulary", def: "An outer garment covering the body from the waist to the ankles." },
+        { uk: "Tuesday", us: "Tuesday", cefr: "A1-A2", type: "Standard Vocabulary", def: "The day of the week after Monday." },
+        { uk: "tyre", us: "tire", cefr: "A1-A2", type: "Spelling Variant", def: "A rubber covering placed around a wheel." },
+        { uk: "umbrella", us: "umbrella", cefr: "A1-A2", type: "Standard Vocabulary", def: "A folding canopy used as protection against rain or sun." },
+        { uk: "uncle", us: "uncle", cefr: "A1-A2", type: "Standard Vocabulary", def: "The brother of one's father or mother." },
+        { uk: "uniform", us: "uniform", cefr: "A1-A2", type: "Standard Vocabulary", def: "The distinctive clothing worn by members of the same organization." },
+        { uk: "vegetable", us: "vegetable", cefr: "A1-A2", type: "Standard Vocabulary", def: "A plant or part of a plant used as food." },
+        { uk: "village", us: "village", cefr: "A1-A2", type: "Standard Vocabulary", def: "A group of houses and other buildings in a rural area." },
+        { uk: "water", us: "water", cefr: "A1-A2", type: "Standard Vocabulary", def: "A transparent, odorless, tasteless liquid." },
+        { uk: "weather", us: "weather", cefr: "A1-A2", type: "Standard Vocabulary", def: "The state of the atmosphere at a place and time." },
+        { uk: "Wednesday", us: "Wednesday", cefr: "A1-A2", type: "Standard Vocabulary", def: "The day of the week after Tuesday." },
+        { uk: "weekend", us: "weekend", cefr: "A1-A2", type: "Standard Vocabulary", def: "Saturday and Sunday." },
+        { uk: "whistle", us: "whistle", cefr: "A1-A2", type: "Standard Vocabulary", def: "Emit a clear, high-pitched sound by forcing breath through small opening." },
+        { uk: "window", us: "window", cefr: "A1-A2", type: "Standard Vocabulary", def: "An opening in a wall fitted with glass in a frame." },
+        { uk: "windy", us: "windy", cefr: "A1-A2", type: "Standard Vocabulary", def: "Marked by or exposed to strong winds." },
+        { uk: "winter", us: "winter", cefr: "A1-A2", type: "Standard Vocabulary", def: "The coldest season of the year." },
+        { uk: "write", us: "write", cefr: "A1-A2", type: "Standard Vocabulary", def: "Mark letters or words on a surface with a pen or pencil." },
+        { uk: "wrong", us: "wrong", cefr: "A1-A2", type: "Standard Vocabulary", def: "Not correct or true." },
+        { uk: "yesterday", us: "yesterday", cefr: "A1-A2", type: "Standard Vocabulary", def: "On the day before today." },
+        { uk: "yoghurt", us: "yogurt", cefr: "A1-A2", type: "Spelling Variant", def: "A semi-solid food prepared from milk fermented by added bacteria." }
+      ],
+      '2': [
+        { uk: "accident", us: "accident", cefr: "B1-B2", type: "Standard Vocabulary", def: "An unfortunate incident that happens unexpectedly and unintentionally." },
+        { uk: "achieve", us: "achieve", cefr: "B1-B2", type: "Standard Vocabulary", def: "Successfully bring about or reach by effort or skill." },
+        { uk: "ageing", us: "aging", cefr: "B1-B2", type: "Spelling Variant", def: "The process of growing old." },
+        { uk: "aluminium", us: "aluminum", cefr: "B1-B2", type: "Spelling Variant", def: "A silvery-white lightweight metallic element." },
+        { uk: "ambulance", us: "ambulance", cefr: "B1-B2", type: "Standard Vocabulary", def: "A vehicle equipped for taking sick or injured people to hospital." },
+        { uk: "analyse", us: "analyze", cefr: "B1-B2", type: "-yse / -yze", def: "Examine methodically and in detail." },
+        { uk: "appointment", us: "appointment", cefr: "B1-B2", type: "Standard Vocabulary", def: "An arrangement to meet at a particular time and place." },
+        { uk: "argument", us: "argument", cefr: "B1-B2", type: "Standard Vocabulary", def: "An exchange of diverging or opposite views." },
+        { uk: "armour", us: "armor", cefr: "B1-B2", type: "-our / -or", def: "Metal coverings worn to protect the body in battle." },
+        { uk: "artefact", us: "artifact", cefr: "B1-B2", type: "Spelling Variant", def: "An object made by a human being, typically of cultural interest." },
+        { uk: "athlete", us: "athlete", cefr: "B1-B2", type: "Standard Vocabulary", def: "A person who is proficient in sports and physical exercises." },
+        { uk: "audience", us: "audience", cefr: "B1-B2", type: "Standard Vocabulary", def: "The assembled spectators or listeners." },
+        { uk: "authorise", us: "authorize", cefr: "B1-B2", type: "-ise / -ize", def: "Give official permission for or approval to." },
+        { uk: "available", us: "available", cefr: "B1-B2", type: "Standard Vocabulary", def: "Able to be used or obtained." },
+        { uk: "average", us: "average", cefr: "B1-B2", type: "Standard Vocabulary", def: "A number expressing the central or typical value in a set." },
+        { uk: "behavioural", us: "behavioral", cefr: "B1-B2", type: "-our / -or", def: "Involving or relating to behavior." },
+        { uk: "believe", us: "believe", cefr: "B1-B2", type: "Standard Vocabulary", def: "Accept that something is true, real, or accurate." },
+        { uk: "calendar", us: "calendar", cefr: "B1-B2", type: "Standard Vocabulary", def: "A chart or series of pages showing the days, weeks, and months." },
+        { uk: "cancelling", us: "canceling", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "Annulling or deciding that an event will not take place." },
+        { uk: "capitalise", us: "capitalize", cefr: "B1-B2", type: "-ise / -ize", def: "Write or print in capital letters or take advantage of." },
+        { uk: "catalogue", us: "catalog", cefr: "B1-B2", type: "-ogue / -og", def: "A complete list of items in systematic order." },
+        { uk: "categorise", us: "categorize", cefr: "B1-B2", type: "-ise / -ize", def: "Place in a particular category or class." },
+        { uk: "ceiling", us: "ceiling", cefr: "B1-B2", type: "Standard Vocabulary", def: "The upper interior surface of a room." },
+        { uk: "centred", us: "centered", cefr: "B1-B2", type: "-re / -er", def: "Placed in the middle." },
+        { uk: "certain", us: "certain", cefr: "B1-B2", type: "Standard Vocabulary", def: "Able to be relied on to happen or be true; confident." },
+        { uk: "champion", us: "champion", cefr: "B1-B2", type: "Standard Vocabulary", def: "A person who has defeated all rivals in a competition." },
+        { uk: "channelled", us: "channeled", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "Directed towards a particular purpose or course." },
+        { uk: "character", us: "character", cefr: "B1-B2", type: "Standard Vocabulary", def: "The mental and moral qualities distinctive to an individual." },
+        { uk: "civilisation", us: "civilization", cefr: "B1-B2", type: "-ise / -ize", def: "The stage of human social and cultural development." },
+        { uk: "climate", us: "climate", cefr: "B1-B2", type: "Standard Vocabulary", def: "The weather conditions prevailing in an area over a long period." },
+        { uk: "colourless", us: "colorless", cefr: "B1-B2", type: "-our / -or", def: "Lacking colour." },
+        { uk: "comfortable", us: "comfortable", cefr: "B1-B2", type: "Standard Vocabulary", def: "Providing physical ease and relaxation." },
+        { uk: "committee", us: "committee", cefr: "B1-B2", type: "Standard Vocabulary", def: "A group of people appointed for a specific function." },
+        { uk: "community", us: "community", cefr: "B1-B2", type: "Standard Vocabulary", def: "A group of people living in the same place or having a particular characteristic in common." },
+        { uk: "competition", us: "competition", cefr: "B1-B2", type: "Standard Vocabulary", def: "An event or contest in which people compete." },
+        { uk: "concentrate", us: "concentrate", cefr: "B1-B2", type: "Standard Vocabulary", def: "Focus one's full attention or mental effort on an object or activity." },
+        { uk: "conclusion", us: "conclusion", cefr: "B1-B2", type: "Standard Vocabulary", def: "The end or finish of an event or process." },
+        { uk: "confidence", us: "confidence", cefr: "B1-B2", type: "Standard Vocabulary", def: "The feeling or belief that one can rely on someone or something." },
+        { uk: "congratulations", us: "congratulations", cefr: "B1-B2", type: "Standard Vocabulary", def: "Words expressing praise for an achievement or good fortune." },
+        { uk: "convenient", us: "convenient", cefr: "B1-B2", type: "Standard Vocabulary", def: "Fitting in well with a person's needs, activities, or plans." },
+        { uk: "counsellor", us: "counselor", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "A person trained to give guidance on personal, social, or psychological problems." },
+        { uk: "courage", us: "courage", cefr: "B1-B2", type: "Standard Vocabulary", def: "The ability to do something that frightens one; bravery." },
+        { uk: "criticise", us: "criticize", cefr: "B1-B2", type: "-ise / -ize", def: "Indicate the faults of someone or something in a disapproving way." },
+        { uk: "criticism", us: "criticism", cefr: "B1-B2", type: "Standard Vocabulary", def: "The expression of disapproval based on perceived faults." },
+        { uk: "curiosity", us: "curiosity", cefr: "B1-B2", type: "Standard Vocabulary", def: "A strong desire to know or learn something." },
+        { uk: "customise", us: "customize", cefr: "B1-B2", type: "-ise / -ize", def: "Modify something to suit a particular individual or task." },
+        { uk: "damage", us: "damage", cefr: "B1-B2", type: "Standard Vocabulary", def: "Physical harm caused to something in such a way as to impair its value or usefulness." },
+        { uk: "decision", us: "decision", cefr: "B1-B2", type: "Standard Vocabulary", def: "A conclusion or resolution reached after consideration." },
+        { uk: "definitely", us: "definitely", cefr: "B1-B2", type: "Standard Vocabulary", def: "Without doubt; certainly." },
+        { uk: "delicious", us: "delicious", cefr: "B1-B2", type: "Standard Vocabulary", def: "Highly pleasant to the taste." },
+        { uk: "dialogue", us: "dialog", cefr: "B1-B2", type: "-ogue / -og", def: "A conversation between two or more people." },
+        { uk: "dictionary", us: "dictionary", cefr: "B1-B2", type: "Standard Vocabulary", def: "A book or resource that lists words and their meanings." },
+        { uk: "disappear", us: "disappear", cefr: "B1-B2", type: "Standard Vocabulary", def: "Cease to be visible." },
+        { uk: "disappoint", us: "disappoint", cefr: "B1-B2", type: "Standard Vocabulary", def: "Fail to fulfill the hopes or expectations of." },
+        { uk: "discipline", us: "discipline", cefr: "B1-B2", type: "Standard Vocabulary", def: "The practice of training people to obey rules or a code of behavior." },
+        { uk: "discover", us: "discover", cefr: "B1-B2", type: "Standard Vocabulary", def: "Find unexpectedly or during a search." },
+        { uk: "draught", us: "draft", cefr: "B1-B2", type: "Spelling Variant", def: "A current of cool air in a room or confined space." },
+        { uk: "education", us: "education", cefr: "B1-B2", type: "Standard Vocabulary", def: "The process of receiving or giving systematic instruction." },
+        { uk: "electricity", us: "electricity", cefr: "B1-B2", type: "Standard Vocabulary", def: "A form of energy resulting from charged particles." },
+        { uk: "emergency", us: "emergency", cefr: "B1-B2", type: "Standard Vocabulary", def: "A serious, unexpected, and dangerous situation requiring immediate action." },
+        { uk: "emphasise", us: "emphasize", cefr: "B1-B2", type: "-ise / -ize", def: "Give special importance or value to something in speaking or writing." },
+        { uk: "encourage", us: "encourage", cefr: "B1-B2", type: "Standard Vocabulary", def: "Give support, confidence, or hope to someone." },
+        { uk: "endeavour", us: "endeavor", cefr: "B1-B2", type: "-our / -or", def: "Try hard to do or achieve something." },
+        { uk: "engineer", us: "engineer", cefr: "B1-B2", type: "Standard Vocabulary", def: "A person who designs, builds, or maintains engines or structures." },
+        { uk: "enrol", us: "enroll", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "Officially register as a member of an institution or course." },
+        { uk: "enrolment", us: "enrollment", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "The action of enrolling or being enrolled." },
+        { uk: "entrance", us: "entrance", cefr: "B1-B2", type: "Standard Vocabulary", def: "An opening, such as a door or gate, that allows access." },
+        { uk: "environment", us: "environment", cefr: "B1-B2", type: "Standard Vocabulary", def: "The surroundings or conditions in which a person, animal, or plant lives." },
+        { uk: "equipment", us: "equipment", cefr: "B1-B2", type: "Standard Vocabulary", def: "The necessary items for a particular purpose." },
+        { uk: "exercise", us: "exercise", cefr: "B1-B2", type: "Standard Vocabulary", def: "Activity requiring physical effort, carried out to sustain health." },
+        { uk: "expensive", us: "expensive", cefr: "B1-B2", type: "Standard Vocabulary", def: "Costing a lot of money." },
+        { uk: "experience", us: "experience", cefr: "B1-B2", type: "Standard Vocabulary", def: "Practical contact with and observation of facts or events." },
+        { uk: "explanation", us: "explanation", cefr: "B1-B2", type: "Standard Vocabulary", def: "A statement or account that makes something clear." },
+        { uk: "familiarise", us: "familiarize", cefr: "B1-B2", type: "-ise / -ize", def: "Give someone knowledge or understanding of something." },
+        { uk: "fascinating", us: "fascinating", cefr: "B1-B2", type: "Standard Vocabulary", def: "Extremely interesting." },
+        { uk: "fashion", us: "fashion", cefr: "B1-B2", type: "Standard Vocabulary", def: "A popular trend, especially in styles of dress and ornament." },
+        { uk: "favourable", us: "favorable", cefr: "B1-B2", type: "-our / -or", def: "Expressing approval or giving a good impression." },
+        { uk: "fibre", us: "fiber", cefr: "B1-B2", type: "-re / -er", def: "A thread or filament from which a vegetable tissue or textile is formed." },
+        { uk: "finalise", us: "finalize", cefr: "B1-B2", type: "-ise / -ize", def: "Complete or agree on a plan or agreement." },
+        { uk: "financial", us: "financial", cefr: "B1-B2", type: "Standard Vocabulary", def: "Relating to finance or money." },
+        { uk: "foreign", us: "foreign", cefr: "B1-B2", type: "Standard Vocabulary", def: "Characteristic of or belonging to a country other than one's own." },
+        { uk: "frequently", us: "frequently", cefr: "B1-B2", type: "Standard Vocabulary", def: "Regularly or habitually; often." },
+        { uk: "fuelled", us: "fueled", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "Supplied with fuel or stimulated." },
+        { uk: "fulfil", us: "fulfill", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "Achieve or realize something desired or promised." },
+        { uk: "fulfilment", us: "fulfillment", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "The achievement of something desired or promised." },
+        { uk: "furniture", us: "furniture", cefr: "B1-B2", type: "Standard Vocabulary", def: "Large movable equipment such as tables, chairs, and beds." },
+        { uk: "gaol", us: "jail", cefr: "B1-B2", type: "Spelling Variant", def: "A place for the confinement of people accused or convicted of a crime." },
+        { uk: "government", us: "government", cefr: "B1-B2", type: "Standard Vocabulary", def: "The governing body of a nation, state, or community." },
+        { uk: "gradually", us: "gradually", cefr: "B1-B2", type: "Standard Vocabulary", def: "In a gradual way; slowly; by degrees." },
+        { uk: "grammar", us: "grammar", cefr: "B1-B2", type: "Standard Vocabulary", def: "The system and structure of a language." },
+        { uk: "guarantee", us: "guarantee", cefr: "B1-B2", type: "Standard Vocabulary", def: "A formal assurance that certain conditions will be fulfilled." },
+        { uk: "guidance", us: "guidance", cefr: "B1-B2", type: "Standard Vocabulary", def: "Advice or information aimed at resolving a problem." },
+        { uk: "guilty", us: "guilty", cefr: "B1-B2", type: "Standard Vocabulary", def: "Culpable of or responsible for a specified wrongdoing." },
+        { uk: "handkerchief", us: "handkerchief", cefr: "B1-B2", type: "Standard Vocabulary", def: "A square of cotton or soft material for wiping the nose." },
+        { uk: "height", us: "height", cefr: "B1-B2", type: "Standard Vocabulary", def: "The measurement of someone or something from base to top." },
+        { uk: "hesitate", us: "hesitate", cefr: "B1-B2", type: "Standard Vocabulary", def: "Pause in indecision before saying or doing something." },
+        { uk: "honourable", us: "honorable", cefr: "B1-B2", type: "-our / -or", def: "Bringing or worthy of honour or respect." },
+        { uk: "hospitalise", us: "hospitalize", cefr: "B1-B2", type: "-ise / -ize", def: "Admit or send someone to hospital for treatment." },
+        { uk: "imagination", us: "imagination", cefr: "B1-B2", type: "Standard Vocabulary", def: "The faculty or action of forming new ideas or images." },
+        { uk: "immediately", us: "immediately", cefr: "B1-B2", type: "Standard Vocabulary", def: "At once; instantly." },
+        { uk: "increase", us: "increase", cefr: "B1-B2", type: "Standard Vocabulary", def: "Become or make greater in size, amount, or degree." },
+        { uk: "independent", us: "independent", cefr: "B1-B2", type: "Standard Vocabulary", def: "Free from outside control; not subject to another's authority." },
+        { uk: "influence", us: "influence", cefr: "B1-B2", type: "Standard Vocabulary", def: "The capacity to have an effect on the character or behavior of someone." },
+        { uk: "information", us: "information", cefr: "B1-B2", type: "Standard Vocabulary", def: "Facts provided or learned about something." },
+        { uk: "instalment", us: "installment", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "A sum of money due as one of several equal payments." },
+        { uk: "instrument", us: "instrument", cefr: "B1-B2", type: "Standard Vocabulary", def: "A tool or implement, especially one for precision work." },
+        { uk: "intelligent", us: "intelligent", cefr: "B1-B2", type: "Standard Vocabulary", def: "Having or showing intelligence or high mental capacity." },
+        { uk: "interrupt", us: "interrupt", cefr: "B1-B2", type: "Standard Vocabulary", def: "Stop the continuous progress of an activity or process." },
+        { uk: "interview", us: "interview", cefr: "B1-B2", type: "Standard Vocabulary", def: "A formal meeting in which one or more people question another." },
+        { uk: "invitation", us: "invitation", cefr: "B1-B2", type: "Standard Vocabulary", def: "A written or spoken request inviting someone to go somewhere or do something." },
+        { uk: "jealous", us: "jealous", cefr: "B1-B2", type: "Standard Vocabulary", def: "Feeling or showing an envious resentment of someone." },
+        { uk: "jeweller", us: "jeweler", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "A person who designs, makes, sells, or repairs jewellery." },
+        { uk: "journalist", us: "journalist", cefr: "B1-B2", type: "Standard Vocabulary", def: "A person who writes for newspapers, magazines, or news websites." },
+        { uk: "knowledge", us: "knowledge", cefr: "B1-B2", type: "Standard Vocabulary", def: "Facts, information, and skills acquired through experience or education." },
+        { uk: "labelling", us: "labeling", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "Attaching a label to something." },
+        { uk: "laboratory", us: "laboratory", cefr: "B1-B2", type: "Standard Vocabulary", def: "A room or building equipped for scientific experiments." },
+        { uk: "labourer", us: "laborer", cefr: "B1-B2", type: "-our / -or", def: "A person doing unpaid or paid manual work." },
+        { uk: "lawyer", us: "lawyer", cefr: "B1-B2", type: "Standard Vocabulary", def: "A person who practices or studies law." },
+        { uk: "legalise", us: "legalize", cefr: "B1-B2", type: "-ise / -ize", def: "Make permissible by law." },
+        { uk: "leisure", us: "leisure", cefr: "B1-B2", type: "Standard Vocabulary", def: "Time when one is free from work or duties." },
+        { uk: "levelled", us: "leveled", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "Made flat or even." },
+        { uk: "lightning", us: "lightning", cefr: "B1-B2", type: "Standard Vocabulary", def: "The occurrence of a natural electrical discharge in the atmosphere." },
+        { uk: "literature", us: "literature", cefr: "B1-B2", type: "Standard Vocabulary", def: "Written works, especially those considered of superior merit." },
+        { uk: "marriage", us: "marriage", cefr: "B1-B2", type: "Standard Vocabulary", def: "The legally or formally recognized union of two people." },
+        { uk: "marvellous", us: "marvelous", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "Causing great wonder; extraordinary." },
+        { uk: "maximise", us: "maximize", cefr: "B1-B2", type: "-ise / -ize", def: "Make as large or great as possible." },
+        { uk: "medicine", us: "medicine", cefr: "B1-B2", type: "Standard Vocabulary", def: "The science or practice of the diagnosis, treatment, and prevention of disease." },
+        { uk: "memorise", us: "memorize", cefr: "B1-B2", type: "-ise / -ize", def: "Commit to memory; learn by heart." },
+        { uk: "memory", us: "memory", cefr: "B1-B2", type: "Standard Vocabulary", def: "The faculty by which the mind stores and remembers information." },
+        { uk: "message", us: "message", cefr: "B1-B2", type: "Standard Vocabulary", def: "A verbal, written, or recorded communication." },
+        { uk: "minimise", us: "minimize", cefr: "B1-B2", type: "-ise / -ize", def: "Reduce something to the smallest possible amount or degree." },
+        { uk: "modelling", us: "modeling", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "The work of a fashion model or creating 3D designs." },
+        { uk: "mystery", us: "mystery", cefr: "B1-B2", type: "Standard Vocabulary", def: "Something that is difficult or impossible to understand or explain." },
+        { uk: "neighbourly", us: "neighborly", cefr: "B1-B2", type: "-our / -or", def: "Characteristic of a good neighbour; friendly and helpful." },
+        { uk: "nervous", us: "nervous", cefr: "B1-B2", type: "Standard Vocabulary", def: "Easily agitated or alarmed; anxious." },
+        { uk: "ocean", us: "ocean", cefr: "B1-B2", type: "Standard Vocabulary", def: "A very large expanse of sea." },
+        { uk: "odour", us: "odor", cefr: "B1-B2", type: "-our / -or", def: "A distinctive smell, especially an unpleasant one." },
+        { uk: "offence", us: "offense", cefr: "B1-B2", type: "-ce / -se", def: "A breach of a law or rule; an illegal act." },
+        { uk: "opportunity", us: "opportunity", cefr: "B1-B2", type: "Standard Vocabulary", def: "A time or set of circumstances that makes it possible to do something." },
+        { uk: "organisation", us: "organization", cefr: "B1-B2", type: "-ise / -ize", def: "An organized group of people with a particular purpose." },
+        { uk: "original", us: "original", cefr: "B1-B2", type: "Standard Vocabulary", def: "Present or existing from the beginning; first." },
+        { uk: "paralyse", us: "paralyze", cefr: "B1-B2", type: "-yse / -yze", def: "Cause a person or part of the body to lose the ability to move." },
+        { uk: "parliament", us: "parliament", cefr: "B1-B2", type: "Standard Vocabulary", def: "The highest legislature in certain countries." },
+        { uk: "parlour", us: "parlor", cefr: "B1-B2", type: "-our / -or", def: "A sitting room in a private house." },
+        { uk: "patient", us: "patient", cefr: "B1-B2", type: "Standard Vocabulary", def: "Able to accept or tolerate delays or suffering without becoming annoyed." },
+        { uk: "permanent", us: "permanent", cefr: "B1-B2", type: "Standard Vocabulary", def: "Remaining unchanged indefinitely." },
+        { uk: "pleasure", us: "pleasure", cefr: "B1-B2", type: "Standard Vocabulary", def: "A feeling of happy satisfaction and enjoyment." },
+        { uk: "plough", us: "plow", cefr: "B1-B2", type: "Spelling Variant", def: "A large farming tool used to turn over soil." },
+        { uk: "politics", us: "politics", cefr: "B1-B2", type: "Standard Vocabulary", def: "The activities associated with the governance of a country or area." },
+        { uk: "possible", us: "possible", cefr: "B1-B2", type: "Standard Vocabulary", def: "Able to be done or achieved." },
+        { uk: "practise", us: "practice", cefr: "B1-B2", type: "-se / -ce", def: "Perform an activity repeatedly to improve skill." },
+        { uk: "prefer", us: "prefer", cefr: "B1-B2", type: "Standard Vocabulary", def: "Like one thing or person better than another." },
+        { uk: "pressure", us: "pressure", cefr: "B1-B2", type: "Standard Vocabulary", def: "Continuous physical force exerted on or against an object." },
+        { uk: "pretence", us: "pretense", cefr: "B1-B2", type: "-ce / -se", def: "An attempt to make something that is not the case appear true." },
+        { uk: "probably", us: "probably", cefr: "B1-B2", type: "Standard Vocabulary", def: "Almost certainly; as far as one can tell." },
+        { uk: "profession", us: "profession", cefr: "B1-B2", type: "Standard Vocabulary", def: "A paid occupation involving prolonged training and formal qualification." },
+        { uk: "publicly", us: "publicly", cefr: "B1-B2", type: "Standard Vocabulary", def: "In a manner that is open to or shared by all the people." },
+        { uk: "quality", us: "quality", cefr: "B1-B2", type: "Standard Vocabulary", def: "The standard of something as measured against other things." },
+        { uk: "quantity", us: "quantity", cefr: "B1-B2", type: "Standard Vocabulary", def: "An amount or number of something." },
+        { uk: "quarrelled", us: "quarreled", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "Had an angry argument or disagreement." },
+        { uk: "quarter", us: "quarter", cefr: "B1-B2", type: "Standard Vocabulary", def: "Each of four equal parts into which something is divided." },
+        { uk: "queue", us: "queue", cefr: "B1-B2", type: "Standard Vocabulary", def: "A line of sequence of people or vehicles awaiting their turn." },
+        { uk: "realisation", us: "realization", cefr: "B1-B2", type: "-ise / -ize", def: "An act of becoming fully aware of something as a fact." },
+        { uk: "realistic", us: "realistic", cefr: "B1-B2", type: "Standard Vocabulary", def: "Having or showing a sensible and practical idea of what can be achieved." },
+        { uk: "reasonable", us: "reasonable", cefr: "B1-B2", type: "Standard Vocabulary", def: "Having sound judgment; fair and sensible." },
+        { uk: "receive", us: "receive", cefr: "B1-B2", type: "Standard Vocabulary", def: "Be given, presented with, or paid something." },
+        { uk: "recommend", us: "recommend", cefr: "B1-B2", type: "Standard Vocabulary", def: "Put forward with approval as being suitable for a particular purpose." },
+        { uk: "reference", us: "reference", cefr: "B1-B2", type: "Standard Vocabulary", def: "The action of mentioning or alluding to something." },
+        { uk: "responsibility", us: "responsibility", cefr: "B1-B2", type: "Standard Vocabulary", def: "The state or fact of having a duty to deal with something." },
+        { uk: "rumour", us: "rumor", cefr: "B1-B2", type: "-our / -or", def: "A currently circulating story of uncertain or doubtful truth." },
+        { uk: "saviour", us: "savior", cefr: "B1-B2", type: "-our / -or", def: "A person who saves someone or something from danger." },
+        { uk: "savoury", us: "savory", cefr: "B1-B2", type: "-our / -or", def: "Belonging to the category of salty or spicy rather than sweet food." },
+        { uk: "sceptic", us: "skeptic", cefr: "B1-B2", type: "Spelling Variant", def: "A person inclined to question or doubt accepted opinions." },
+        { uk: "sceptical", us: "skeptical", cefr: "B1-B2", type: "Spelling Variant", def: "Not easily convinced; having doubts or reservations." },
+        { uk: "sceptre", us: "scepter", cefr: "B1-B2", type: "-re / -er", def: "An ornamented staff carried by rulers on ceremonial occasions." },
+        { uk: "schedule", us: "schedule", cefr: "B1-B2", type: "Standard Vocabulary", def: "A plan for carrying out a process or procedure." },
+        { uk: "secretary", us: "secretary", cefr: "B1-B2", type: "Standard Vocabulary", def: "A person employed to handle correspondence and administrative work." },
+        { uk: "separate", us: "separate", cefr: "B1-B2", type: "Standard Vocabulary", def: "Forming or viewed as a unit by itself." },
+        { uk: "signalling", us: "signaling", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "Transmitting information or instructions by signals." },
+        { uk: "sincerely", us: "sincerely", cefr: "B1-B2", type: "Standard Vocabulary", def: "In a sincere or genuine way." },
+        { uk: "skilful", us: "skillful", cefr: "B1-B2", type: "Single L vs Double L", def: "Having or showing skill." },
+        { uk: "sombre", us: "somber", cefr: "B1-B2", type: "-re / -er", def: "Dark or dull in colour or tone; gloomy." },
+        { uk: "specialise", us: "specialize", cefr: "B1-B2", type: "-ise / -ize", def: "Concentrate on and become expert in a particular subject." },
+        { uk: "speciality", us: "specialty", cefr: "B1-B2", type: "Spelling Variant", def: "A subject or product that someone specializes in." },
+        { uk: "splendour", us: "splendor", cefr: "B1-B2", type: "-our / -or", def: "Magnificent and splendid appearance; grandeur." },
+        { uk: "successful", us: "successful", cefr: "B1-B2", type: "Standard Vocabulary", def: "Accomplishing an aim or purpose." },
+        { uk: "sulphur", us: "sulfur", cefr: "B1-B2", type: "Spelling Variant", def: "A yellow non-metallic chemical element." },
+        { uk: "summarise", us: "summarize", cefr: "B1-B2", type: "-ise / -ize", def: "Give a brief statement of the main points of something." },
+        { uk: "sympathise", us: "sympathize", cefr: "B1-B2", type: "-ise / -ize", def: "Feel or express sympathy." },
+        { uk: "temperature", us: "temperature", cefr: "B1-B2", type: "Standard Vocabulary", def: "The degree or intensity of heat present in a substance." },
+        { uk: "totalled", us: "totaled", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "Amounted to or calculated the total." },
+        { uk: "tumour", us: "tumor", cefr: "B1-B2", type: "-our / -or", def: "A swelling of a part of the body caused by abnormal growth." },
+        { uk: "unfortunately", us: "unfortunately", cefr: "B1-B2", type: "Standard Vocabulary", def: "Unluckily; regrettably." },
+        { uk: "until", us: "until", cefr: "B1-B2", type: "Standard Vocabulary", def: "Up to the point in time or the event mentioned." },
+        { uk: "vigour", us: "vigor", cefr: "B1-B2", type: "-our / -or", def: "Physical strength and good health." },
+        { uk: "visualise", us: "visualize", cefr: "B1-B2", type: "-ise / -ize", def: "Form a mental image of." },
+        { uk: "wealthy", us: "wealthy", cefr: "B1-B2", type: "Standard Vocabulary", def: "Having a great deal of money, resources, or assets." },
+        { uk: "whether", us: "whether", cefr: "B1-B2", type: "Standard Vocabulary", def: "Expressing a doubt or choice between alternatives." },
+        { uk: "whisky", us: "whiskey", cefr: "B1-B2", type: "Spelling Variant", def: "A spirit distilled from malted grain." },
+        { uk: "woollen", us: "woolen", cefr: "B1-B2", type: "Doubled Consonant -ll-", def: "Made of wool." }
+      ],
+      '3': [
+        { uk: "abridgement", us: "abridgment", cefr: "C1–C2", type: "Spelling Variant", def: "A shortened version of a larger text.", sentence: "He read an abridgement of the historic book." },
+        { uk: "accommodate", us: "accommodate", cefr: "C1–C2", type: "Standard", def: "Provide lodging or sufficient space for.", sentence: "The hall can accommodate hundreds of guests." },
+        { uk: "acknowledgement", us: "acknowledgment", cefr: "C1–C2", type: "Spelling Variant", def: "Acceptance of the truth or existence of something.", sentence: "She received an official acknowledgement letter." },
+        { uk: "acquiesce", us: "acquiesce", cefr: "C1–C2", type: "Standard", def: "Accept something reluctantly but without protest.", sentence: "He decided to acquiesce to the committee's demands." },
+        { uk: "aeon", us: "eon", cefr: "C1–C2", type: "ae/e Variant", def: "An indefinite and very long period of time.", sentence: "Geologists measure history over an aeon." },
+        { uk: "aesthetic", us: "esthetic", cefr: "C1–C2", type: "ae/e Variant", def: "Concerned with beauty or the appreciation of beauty.", sentence: "The building features a sleek modern aesthetic." },
+        { uk: "albatross", us: "albatross", cefr: "C1–C2", type: "Standard", def: "A large seabird with long wings.", sentence: "An albatross soared effortlessly over the ocean." },
+        { uk: "albeit", us: "albeit", cefr: "C1–C2", type: "Standard", def: "Though or although.", sentence: "It was an enjoyable, albeit brief, visit." },
+        { uk: "ambiguous", us: "ambiguous", cefr: "C1–C2", type: "Standard", def: "Open to more than one interpretation.", sentence: "The wording in the agreement was ambiguous." },
+        { uk: "amoeba", us: "ameba", cefr: "C1–C2", type: "ae/e Variant", def: "A microscopic single-celled organism.", sentence: "An amoeba changes shape using pseudopods." },
+        { uk: "anaemia", us: "anemia", cefr: "C1–C2", type: "ae/e Variant", def: "A deficiency of red blood cells or hemoglobin.", sentence: "Iron supplements can help treat anaemia." },
+        { uk: "anaesthetic", us: "anesthetic", cefr: "C1–C2", type: "ae/e Variant", def: "A drug that induces insensitivity to pain.", sentence: "The dentist administered a local anaesthetic." },
+        { uk: "anaesthetist", us: "anesthetist", cefr: "C1–C2", type: "ae/e Variant", def: "A medical specialist who administers anesthetics.", sentence: "The anaesthetist prepared the patient for surgery." },
+        { uk: "analogue", us: "analog", cefr: "C1–C2", type: "-ogue/-og", def: "A person or thing seen as comparable to another.", sentence: "He prefers wearing an analogue wristwatch." },
+        { uk: "anonymous", us: "anonymous", cefr: "C1–C2", type: "Standard", def: "Not identified by name; of unknown name.", sentence: "The donation was made by an anonymous benefactor." },
+        { uk: "apparatus", us: "apparatus", cefr: "C1–C2", type: "Standard", def: "Technical equipment needed for a particular purpose.", sentence: "Firefighters set up breathing apparatus." },
+        { uk: "archaeology", us: "archeology", cefr: "C1–C2", type: "ae/e Variant", def: "Study of human history through excavations.", sentence: "She leads an archaeology research expedition." },
+        { uk: "ardour", us: "ardor", cefr: "C1–C2", type: "-our/-or", def: "Enthusiasm or passion.", sentence: "He defended his cause with great ardour." },
+        { uk: "bourgeois", us: "bourgeois", cefr: "C1–C2", type: "Standard", def: "Characteristics of the middle class.", sentence: "They discussed the changing bourgeois society." },
+        { uk: "bureau", us: "bureau", cefr: "C1–C2", type: "Standard", def: "An office or department for transacting business.", sentence: "Check with the travel bureau for guidance." },
+        { uk: "bureaucracy", us: "bureaucracy", cefr: "C1–C2", type: "Standard", def: "A system of administration marked by official routine.", sentence: "Excessive bureaucracy delayed the new project." },
+        { uk: "cacophony", us: "cacophony", cefr: "C1–C2", type: "Standard", def: "A harsh, discordant mixture of sounds.", sentence: "A cacophony of car horns rang out in traffic." },
+        { uk: "caesium", us: "cesium", cefr: "C1–C2", type: "ae/e Variant", def: "A soft, silvery-gold alkali chemical element.", sentence: "Atomic clocks utilize caesium vibration frequencies." },
+        { uk: "calibre", us: "caliber", cefr: "C1–C2", type: "-re/-er", def: "Quality or standard of someone's ability.", sentence: "The tournament brought players of high calibre." },
+        { uk: "camaraderie", us: "camaraderie", cefr: "C1–C2", type: "Standard", def: "Mutual trust and friendship among people.", sentence: "There was warm camaraderie among team members." },
+        { uk: "candour", us: "candor", cefr: "C1–C2", type: "-our/-or", def: "The quality of being open and honest.", sentence: "Her frank candour was appreciated by everyone." },
+        { uk: "cataloguing", us: "cataloging", cefr: "C1–C2", type: "Spelling Variant", def: "Creating a systematic list of items.", sentence: "Librarians spent months cataloguing rare manuscripts." },
+        { uk: "catalyse", us: "catalyze", cefr: "C1–C2", type: "-yse/-yze", def: "Cause or accelerate a reaction.", sentence: "Enzymes act to catalyse metabolic processes." },
+        { uk: "chandelier", us: "chandelier", cefr: "C1–C2", type: "Standard", def: "A branched ornate hanging light fixture.", sentence: "A crystal chandelier illuminated the ballroom." },
+        { uk: "chauffeur", us: "chauffeur", cefr: "C1–C2", type: "Standard", def: "A person employed to drive a private car.", sentence: "The chauffeur opened the door for passengers." },
+        { uk: "cholesterol", us: "cholesterol", cefr: "C1–C2", type: "Standard", def: "A lipid compound present in body tissues.", sentence: "A balanced diet helps regulate blood cholesterol." },
+        { uk: "clamour", us: "clamor", cefr: "C1–C2", type: "-our/-or", def: "A loud and confused noise, especially shouting.", sentence: "A clamour arose among the crowd outside." },
+        { uk: "colleague", us: "colleague", cefr: "C1–C2", type: "Standard", def: "A person with whom one works.", sentence: "She consulted her senior colleague on the study." },
+        { uk: "colonel", us: "colonel", cefr: "C1–C2", type: "Standard", def: "A senior military officer rank.", sentence: "The colonel delivered orders to the regiment." },
+        { uk: "conceptualise", us: "conceptualize", cefr: "C1–C2", type: "-ise/-ize", def: "Form a concept or idea of something.", sentence: "Engineers worked to conceptualise the prototype." },
+        { uk: "connoisseur", us: "connoisseur", cefr: "C1–C2", type: "Standard", def: "An expert judge in matters of taste.", sentence: "He is a recognized connoisseur of fine art." },
+        { uk: "conscience", us: "conscience", cefr: "C1–C2", type: "Standard", def: "An inner feeling acting as a guide to right or wrong.", sentence: "His conscience urged him to tell the truth." },
+        { uk: "conscientious", us: "conscientious", cefr: "C1–C2", type: "Standard", def: "Wishing to do one's work or duty thoroughly.", sentence: "She is a conscientious student who studies daily." },
+        { uk: "consensus", us: "consensus", cefr: "C1–C2", type: "Standard", def: "A general agreement among group members.", sentence: "The board reached a unanimous consensus." },
+        { uk: "conundrum", us: "conundrum", cefr: "C1–C2", type: "Standard", def: "A confusing and difficult problem or question.", sentence: "Solving the riddle proved to be a conundrum." },
+        { uk: "crystallise", us: "crystallize", cefr: "C1–C2", type: "-ise/-ize", def: "Form into crystals or make definite.", sentence: "His plans began to crystallise over time." },
+        { uk: "curriculum", us: "curriculum", cefr: "C1–C2", type: "Standard", def: "The subjects comprising a course of study.", sentence: "The school updated its science curriculum." },
+        { uk: "cypher", us: "cipher", cefr: "C1–C2", type: "Spelling Variant", def: "A secret or disguised way of writing; code.", sentence: "The message was written in an ancient cypher." },
+        { uk: "deficit", us: "deficit", cefr: "C1–C2", type: "Standard", def: "The amount by which a sum falls short.", sentence: "The government took steps to reduce the deficit." },
+        { uk: "demeanour", us: "demeanor", cefr: "C1–C2", type: "-our/-or", def: "Outward behavior or bearing.", sentence: "Her calm demeanour reassured everyone." },
+        { uk: "deputise", us: "deputize", cefr: "C1–C2", type: "-ise/-ize", def: "Appoint someone to act as a deputy.", sentence: "The chief decided to deputise his assistant." },
+        { uk: "diarrhoea", us: "diarrhea", cefr: "C1–C2", type: "ae/e Variant", def: "A medical condition of frequent watery discharge.", sentence: "Dehydration is a risk associated with diarrhoea." },
+        { uk: "dilemma", us: "dilemma", cefr: "C1–C2", type: "Standard", def: "A situation requiring a difficult choice.", sentence: "Facing two hard options created a dilemma." },
+        { uk: "diphtheria", us: "diphtheria", cefr: "C1–C2", type: "Standard", def: "A serious contagious bacterial infection.", sentence: "Vaccines protect children against diphtheria." },
+        { uk: "dyspnoea", us: "dyspnea", cefr: "C1–C2", type: "ae/e Variant", def: "Difficult or labored breathing.", sentence: "Asthma can cause sudden attacks of dyspnoea." },
+        { uk: "ecstasy", us: "ecstasy", cefr: "C1–C2", type: "Standard", def: "An overwhelming feeling of great happiness.", sentence: "Winning the trophy filled the team with ecstasy." },
+        { uk: "eczema", us: "eczema", cefr: "C1–C2", type: "Standard", def: "A medical condition in which skin becomes itchy.", sentence: "Soothing cream helps calm irritated eczema." },
+        { uk: "effervescent", us: "effervescent", cefr: "C1–C2", type: "Standard", def: "Giving off bubbles; vivacious and enthusiastic.", sentence: "Her effervescent personality cheered the room." },
+        { uk: "embarrass", us: "embarrass", cefr: "C1–C2", type: "Standard", def: "Cause someone to feel awkward or self-conscious.", sentence: "She did not mean to embarrass her friend." },
+        { uk: "encyclopaedia", us: "encyclopedia", cefr: "C1–C2", type: "ae/e Variant", def: "A book or set of books giving information on many subjects.", sentence: "He looked up the article in an encyclopaedia." },
+        { uk: "entrepreneur", us: "entrepreneur", cefr: "C1–C2", type: "Standard", def: "A person who sets up a business taking risks.", sentence: "The tech entrepreneur launched a new startup." },
+        { uk: "epilogue", us: "epilog", cefr: "C1–C2", type: "-ogue/-og", def: "A section at the end of a literary work.", sentence: "The novel's epilogue revealed their future." },
+        { uk: "epitomise", us: "epitomize", cefr: "C1–C2", type: "-ise/-ize", def: "Be a perfect example of something.", sentence: "Her paintings epitomise modern art." },
+        { uk: "exaggerate", us: "exaggerate", cefr: "C1–C2", type: "Standard", def: "Represent something as larger or greater than it is.", sentence: "Try not to exaggerate the minor details." },
+        { uk: "exhilarate", us: "exhilarate", cefr: "C1–C2", type: "Standard", def: "Make someone feel very happy and animated.", sentence: "Riding the roller coaster will exhilarate you." },
+        { uk: "faeces", us: "feces", cefr: "C1–C2", type: "ae/e Variant", def: "Waste matter discharged from the bowels.", sentence: "Scientists analyzed the ancient fossil faeces." },
+        { uk: "fervour", us: "fervor", cefr: "C1–C2", type: "-our/-or", def: "Intense and passionate feeling.", sentence: "The crowd cheered with patriotic fervour." },
+        { uk: "fluorescent", us: "fluorescent", cefr: "C1–C2", type: "Standard", def: "Vividly colorful or glowing under UV light.", sentence: "The classroom was lit by fluorescent tubes." },
+        { uk: "foetus", us: "fetus", cefr: "C1–C2", type: "ae/e Variant", def: "An unborn mammalian offspring.", sentence: "Ultrasound showed a healthy growing foetus." },
+        { uk: "genealogy", us: "genealogy", cefr: "C1–C2", type: "Standard", def: "A line of descent traced from an ancestor.", sentence: "He researched his family genealogy online." },
+        { uk: "glamour", us: "glamor", cefr: "C1–C2", type: "-our/-or", def: "An attractive or exciting quality.", sentence: "Hollywood brings glamour to red carpet events." },
+        { uk: "grandeur", us: "grandeur", cefr: "C1–C2", type: "Standard", def: "Splendor and impressiveness.", sentence: "The grandeur of the cathedral awed visitors." },
+        { uk: "guerrilla", us: "guerrilla", cefr: "C1–C2", type: "Standard", def: "A member of a small independent fighting force.", sentence: "They practiced unconventional guerrilla tactics." },
+        { uk: "gynaecologist", us: "gynecologist", cefr: "C1–C2", type: "ae/e Variant", def: "A physician specializing in female reproductive health.", sentence: "The gynaecologist answered patient questions." },
+        { uk: "gynaecology", us: "gynecology", cefr: "C1–C2", type: "ae/e Variant", def: "The branch of medicine concerned with female health.", sentence: "She completed her residency in gynaecology." },
+        { uk: "haematology", us: "hematology", cefr: "C1–C2", type: "ae/e Variant", def: "The study of blood and blood disorders.", sentence: "Haematology labs test blood cell counts." },
+        { uk: "haemoglobin", us: "hemoglobin", cefr: "C1–C2", type: "ae/e Variant", def: "Red protein responsible for transporting oxygen.", sentence: "Low haemoglobin causes feelings of fatigue." },
+        { uk: "haemophilia", us: "hemophilia", cefr: "C1–C2", type: "ae/e Variant", def: "A medical condition impairing blood clotting.", sentence: "Haemophilia requires careful medical care." },
+        { uk: "haemorrhage", us: "hemorrhage", cefr: "C1–C2", type: "ae/e Variant", def: "An escape of blood from a ruptured vessel.", sentence: "Surgeons quickly stopped the internal haemorrhage." },
+        { uk: "harass", us: "harass", cefr: "C1–C2", type: "Standard", def: "Subject to aggressive pressure or intimidation.", sentence: "Rules strictly forbid anyone to harass others." },
+        { uk: "hierarchy", us: "hierarchy", cefr: "C1–C2", type: "Standard", def: "A system in which members are ranked by status.", sentence: "Decisions move through a corporate hierarchy." },
+        { uk: "hydrolyse", us: "hydrolyze", cefr: "C1–C2", type: "-yse/-yze", def: "Break down a chemical compound with water.", sentence: "Enzymes hydrolyse protein molecules." },
+        { uk: "hypocrisy", us: "hypocrisy", cefr: "C1–C2", type: "Standard", def: "Claiming moral standards one does not practice.", sentence: "Her double standards revealed clear hypocrisy." },
+        { uk: "hypothesise", us: "hypothesize", cefr: "C1–C2", type: "-ise/-ize", def: "Put forward a hypothesis.", sentence: "Scientists hypothesise about cosmic origins." },
+        { uk: "idealise", us: "idealize", cefr: "C1–C2", type: "-ise/-ize", def: "Regard or represent as perfect.", sentence: "Do not idealise romanticized historical eras." },
+        { uk: "idiosyncrasy", us: "idiosyncrasy", cefr: "C1–C2", type: "Standard", def: "A behavioral attribute peculiar to an individual.", sentence: "Humming while reading was her idiosyncrasy." },
+        { uk: "immunise", us: "immunize", cefr: "C1–C2", type: "-ise/-ize", def: "Make immune to an infection.", sentence: "Clinics immunise children against disease." },
+        { uk: "indispensable", us: "indispensable", cefr: "C1–C2", type: "Standard", def: "Absolutely necessary; essential.", sentence: "Clean water is indispensable for survival." },
+        { uk: "inoculate", us: "inoculate", cefr: "C1–C2", type: "Standard", def: "Vaccinate or treat with a vaccine.", sentence: "Doctors inoculate patients before travel." },
+        { uk: "insouciance", us: "insouciance", cefr: "C1–C2", type: "Standard", def: "Casual lack of concern or indifference.", sentence: "He shrugged off difficulties with insouciance." },
+        { uk: "irresistible", us: "irresistible", cefr: "C1–C2", type: "Standard", def: "Too attractive or tempting to resist.", sentence: "The smell of fresh bakery bread was irresistible." },
+        { uk: "jeopardy", us: "jeopardy", cefr: "C1–C2", type: "Standard", def: "Danger of loss, harm, or failure.", sentence: "The storm put the expedition in jeopardy." },
+        { uk: "judgement", us: "judgment", cefr: "C1–C2", type: "Spelling Variant", def: "The ability to make considered decisions.", sentence: "Trust your professional moral judgement." },
+        { uk: "judicious", us: "judicious", cefr: "C1–C2", type: "Standard", def: "Having or done with good sense and judgment.", sentence: "She made a judicious choice under pressure." },
+        { uk: "kaleidoscope", us: "kaleidoscope", cefr: "C1–C2", type: "Standard", def: "A tube containing loose, colored objects reflecting patterns.", sentence: "Looking inside revealed a brilliant kaleidoscope." },
+        { uk: "labyrinth", us: "labyrinth", cefr: "C1–C2", type: "Standard", def: "A complicated irregular network of passages.", sentence: "They navigated through a stone labyrinth." },
+        { uk: "leukaemia", us: "leukemia", cefr: "C1–C2", type: "ae/e Variant", def: "A progressive cancer of blood-forming tissues.", sentence: "Research improves treatments for leukaemia." },
+        { uk: "liaison", us: "liaison", cefr: "C1–C2", type: "Standard", def: "Communication facilitating close cooperation.", sentence: "She acted as diplomatic liaison officer." },
+        { uk: "lieutenant", us: "lieutenant", cefr: "C1–C2", type: "Standard", def: "A military officer rank.", sentence: "The lieutenant gave tactical instructions." },
+        { uk: "liquorice", us: "licorice", cefr: "C1–C2", type: "Spelling Variant", def: "A black sweet candy flavored with root extract.", sentence: "She purchased a bag of sweet liquorice." },
+        { uk: "lodgement", us: "lodgment", cefr: "C1–C2", type: "Spelling Variant", def: "A place where something is deposited or lodged.", sentence: "Confirm the bank lodgement receipt." },
+        { uk: "lustre", us: "luster", cefr: "C1–C2", type: "-re/-er", def: "A gentle sheen or soft glow.", sentence: "Polishing restored the silver's original lustre." },
+        { uk: "maintenance", us: "maintenance", cefr: "C1–C2", type: "Standard", def: "The process of preserving or maintaining something.", sentence: "Regular maintenance keeps cars running well." },
+        { uk: "manoeuvre", us: "maneuver", cefr: "C1–C2", type: "Spelling Variant", def: "A movement requiring skill and care.", sentence: "Parallel parking is a tricky driving manoeuvre." },
+        { uk: "meagre", us: "meager", cefr: "C1–C2", type: "-re/-er", def: "Lacking in quantity or quality.", sentence: "They survived on a meagre daily ration." },
+        { uk: "mediaeval", us: "medieval", cefr: "C1–C2", type: "ae/e Variant", def: "Relating to the Middle Ages.", sentence: "The museum displayed mediaeval armor suits." },
+        { uk: "Mediterranean", us: "Mediterranean", cefr: "C1–C2", type: "Standard", def: "Relating to the Mediterranean region or sea.", sentence: "They enjoyed a sunny Mediterranean climate." },
+        { uk: "millennium", us: "millennium", cefr: "C1–C2", type: "Standard", def: "A period of a thousand years.", sentence: "The new millennium brought vast tech growth." },
+        { uk: "minuscule", us: "minuscule", cefr: "C1–C2", type: "Standard", def: "Extremely small or tiny.", sentence: "A minuscule error caused the calculation fault." },
+        { uk: "miscellaneous", us: "miscellaneous", cefr: "C1–C2", type: "Standard", def: "Consisting of various types without order.", sentence: "The drawer contained miscellaneous items." },
+        { uk: "mischievous", us: "mischievous", cefr: "C1–C2", type: "Standard", def: "Causing or showing a fondness for play mischief.", sentence: "A mischievous smile crossed the child's face." },
+        { uk: "mitre", us: "miter", cefr: "C1–C2", type: "-re/-er", def: "A tall headdress worn by bishops.", sentence: "The bishop wore a ceremonial gold mitre." },
+        { uk: "mnemonic", us: "mnemonic", cefr: "C1–C2", type: "Standard", def: "A device or pattern aiding memory.", sentence: "Using a mnemonic helps recall order." },
+        { uk: "mobilise", us: "mobilize", cefr: "C1–C2", type: "-ise/-ize", def: "Prepare and organize for active service.", sentence: "Crews worked to mobilise emergency relief." },
+        { uk: "mollusc", us: "mollusk", cefr: "C1–C2", type: "Spelling Variant", def: "An invertebrate animal with a soft unsegmented body.", sentence: "Clams and snails belong to the mollusc family." },
+        { uk: "monologue", us: "monolog", cefr: "C1–C2", type: "-ogue/-og", def: "A long speech by one actor in a play.", sentence: "The lead actor gave a dramatic monologue." },
+        { uk: "monopolise", us: "monopolize", cefr: "C1–C2", type: "-ise/-ize", def: "Obtain exclusive possession or control.", sentence: "Do not monopolise the entire group discussion." },
+        { uk: "nauseous", us: "nauseous", cefr: "C1–C2", type: "Standard", def: "Inclined to vomit; feeling nauseated.", sentence: "Rough sea waves made passengers feel nauseous." },
+        { uk: "necessary", us: "necessary", cefr: "C1–C2", type: "Standard", def: "Required to be done; essential.", sentence: "Proper nutrition is necessary for good health." },
+        { uk: "nostalgia", us: "nostalgia", cefr: "C1–C2", type: "Standard", def: "Sentimental longing for the past.", sentence: "Old photographs filled her with nostalgia." },
+        { uk: "obsolescence", us: "obsolescence", cefr: "C1–C2", type: "Standard", def: "The process of becoming obsolete.", sentence: "Rapid innovation causes tech obsolescence." },
+        { uk: "occasionally", us: "occasionally", cefr: "C1–C2", type: "Standard", def: "At infrequent intervals; now and then.", sentence: "We occasionally go camping in the mountains." },
+        { uk: "occurrence", us: "occurrence", cefr: "C1–C2", type: "Standard", def: "An incident or event.", sentence: "Rain showers are a daily occurrence here." },
+        { uk: "oedema", us: "edema", cefr: "C1–C2", type: "ae/e Variant", def: "Excess fluid accumulation in body tissues.", sentence: "Elevating legs helps reduce tissue oedema." },
+        { uk: "oesophagus", us: "esophagus", cefr: "C1–C2", type: "ae/e Variant", def: "The muscular tube connecting throat to stomach.", sentence: "Swallowed food travels down the oesophagus." },
+        { uk: "oestrogen", us: "estrogen", cefr: "C1–C2", type: "ae/e Variant", def: "A primary female sex hormone.", sentence: "Oestrogen plays key roles in body regulation." },
+        { uk: "onomatopoeia", us: "onomatopoeia", cefr: "C1–C2", type: "Standard", def: "Formation of a word from an associated sound.", sentence: "Words like buzz and hiss are onomatopoeia." },
+        { uk: "orthodontist", us: "orthodontist", cefr: "C1–C2", type: "Standard", def: "A dental specialist correcting misaligned teeth.", sentence: "The orthodontist tightened her dental braces." },
+        { uk: "orthopaedic", us: "orthopedic", cefr: "C1–C2", type: "ae/e Variant", def: "Relating to the branch of medicine for bones.", sentence: "He consulted an orthopaedic bone surgeon." },
+        { uk: "oscillate", us: "oscillate", cefr: "C1–C2", type: "Standard", def: "Move back and forth at a regular speed.", sentence: "The pendulum began to oscillate steadily." },
+        { uk: "ostracise", us: "ostracize", cefr: "C1–C2", type: "-ise/-ize", def: "Exclude someone from a society or group.", sentence: "It is wrong to ostracise someone for differences." },
+        { uk: "oxidise", us: "oxidize", cefr: "C1–C2", type: "-ise/-ize", def: "Combine or cause to combine with oxygen.", sentence: "Iron will oxidise and rust when exposed to moisture." },
+        { uk: "paediatric", us: "pediatric", cefr: "C1–C2", type: "ae/e Variant", def: "Relating to medical care of children.", sentence: "She works in a specialized paediatric ward." },
+        { uk: "paedophile", us: "pedophile", cefr: "C1–C2", type: "ae/e Variant", def: "A person sexually attracted to children.", sentence: "Law enforcement arrested the dangerous offender." },
+        { uk: "palaeolithic", us: "paleolithic", cefr: "C1–C2", type: "ae/e Variant", def: "Relating to the early Stone Age period.", sentence: "Palaeolithic cave art was discovered inside." },
+        { uk: "palaeontology", us: "paleontology", cefr: "C1–C2", type: "ae/e Variant", def: "The study of fossilized animals and plants.", sentence: "Palaeontology unveils prehistoric dinosaur life." },
+        { uk: "paraphernalia", us: "paraphernalia", cefr: "C1–C2", type: "Standard", def: "Miscellaneous articles needed for an activity.", sentence: "He carried his full camera paraphernalia." },
+        { uk: "pasteurise", us: "pasteurize", cefr: "C1–C2", type: "-ise/-ize", def: "Heat milk to destroy harmful bacteria.", sentence: "Dairy plants pasteurise milk before selling." },
+        { uk: "pastime", us: "pastime", cefr: "C1–C2", type: "Standard", def: "An activity done regularly for enjoyment.", sentence: "Gardening is her favorite weekend pastime." },
+        { uk: "pedlar", us: "peddler", cefr: "C1–C2", type: "Spelling Variant", def: "A traveling seller of small items.", sentence: "An old pedlar sold goods from village to village." },
+        { uk: "perseverance", us: "perseverance", cefr: "C1–C2", type: "Standard", def: "Persistence in doing something despite difficulty.", sentence: "Success requires dedication and perseverance." },
+        { uk: "pharaoh", us: "pharaoh", cefr: "C1–C2", type: "Standard", def: "A ruler in ancient Egypt.", sentence: "The Egyptian pharaoh commissioned the pyramid." },
+        { uk: "phenomenon", us: "phenomenon", cefr: "C1–C2", type: "Standard", def: "A fact or situation that is observed to exist.", sentence: "Lightning is a natural atmospheric phenomenon." },
+        { uk: "plagiarism", us: "plagiarism", cefr: "C1–C2", type: "Standard", def: "Using another's work without attribution.", sentence: "Academic integrity strictly bans all plagiarism." },
+        { uk: "pneumonia", us: "pneumonia", cefr: "C1–C2", type: "Standard", def: "Lung inflammation caused by bacterial infection.", sentence: "Antibiotics cured his severe pneumonia infection." },
+        { uk: "precarious", us: "precarious", cefr: "C1–C2", type: "Standard", def: "Not securely held or in position; dangerous.", sentence: "The ladder was in a precarious position." },
+        { uk: "prejudice", us: "prejudice", cefr: "C1–C2", type: "Standard", def: "Preconceived opinion not based on reason.", sentence: "We must work to eliminate social prejudice." },
+        { uk: "prioritise", us: "prioritize", cefr: "C1–C2", type: "-ise/-ize", def: "Treat something as more important than others.", sentence: "You must learn to prioritise urgent tasks." },
+        { uk: "privilege", us: "privilege", cefr: "C1–C2", type: "Standard", def: "A special right or advantage granted to a person.", sentence: "Education is a valuable life privilege." },
+        { uk: "procrastinate", us: "procrastinate", cefr: "C1–C2", type: "Standard", def: "Delay or postpone action.", sentence: "Do not procrastinate when studying for exams." },
+        { uk: "prologue", us: "prolog", cefr: "C1–C2", type: "-ogue/-og", def: "A separate introductory section of a book.", sentence: "The prologue introduced the main characters." },
+        { uk: "pronunciation", us: "pronunciation", cefr: "C1–C2", type: "Standard", def: "The way in which a word is pronounced.", sentence: "Clear pronunciation helps effective communication." },
+        { uk: "psychiatrist", us: "psychiatrist", cefr: "C1–C2", type: "Standard", def: "A medical practitioner treating mental illness.", sentence: "The psychiatrist offered helpful advice." },
+        { uk: "quarantine", us: "quarantine", cefr: "C1–C2", type: "Standard", def: "A state of isolation to prevent disease spread.", sentence: "Travelers were placed in quarantine." },
+        { uk: "questionnaire", us: "questionnaire", cefr: "C1–C2", type: "Standard", def: "A set of printed questions for a survey.", sentence: "Participants completed a feedback questionnaire." },
+        { uk: "quintessential", us: "quintessential", cefr: "C1–C2", type: "Standard", def: "Representing the most perfect example.", sentence: "It was the quintessential summer afternoon." },
+        { uk: "rationalise", us: "rationalize", cefr: "C1–C2", type: "-ise/-ize", def: "Attempt to justify behavior with logical reasons.", sentence: "He tried to rationalise his hasty decision." },
+        { uk: "reconnaissance", us: "reconnaissance", cefr: "C1–C2", type: "Standard", def: "Military observation to gather information.", sentence: "Drones flew a reconnaissance mission." },
+        { uk: "rehearsal", us: "rehearsal", cefr: "C1–C2", type: "Standard", def: "A trial performance for a play or concert.", sentence: "The orchestra attended dress rehearsal." },
+        { uk: "rendezvous", us: "rendezvous", cefr: "C1–C2", type: "Standard", def: "A meeting at an agreed time and place.", sentence: "They arranged a quiet cafe rendezvous." },
+        { uk: "restaurateur", us: "restaurateur", cefr: "C1–C2", type: "Standard", def: "A person who owns and manages a restaurant.", sentence: "The restaurateur opened a new bistro downtown." },
+        { uk: "resuscitate", us: "resuscitate", cefr: "C1–C2", type: "Standard", def: "Revive someone from unconsciousness.", sentence: "Medics worked to resuscitate the patient." },
+        { uk: "revolutionise", us: "revolutionize", cefr: "C1–C2", type: "-ise/-ize", def: "Change something radically or fundamentally.", sentence: "AI will revolutionise digital learning." },
+        { uk: "rhythm", us: "rhythm", cefr: "C1–C2", type: "Standard", def: "A strong, regular, repeated pattern of movement.", sentence: "Dancers moved to the steady drum rhythm." },
+        { uk: "rigour", us: "rigor", cefr: "C1–C2", type: "-our/-or", def: "The quality of being thorough and accurate.", sentence: "Academic research demands scientific rigour." },
+        { uk: "sabre", us: "saber", cefr: "C1–C2", type: "-re/-er", def: "A heavy cavalry sword with a curved blade.", sentence: "The fencing master wielded a polished sabre." },
+        { uk: "sacrilegious", us: "sacrilegious", cefr: "C1–C2", type: "Standard", def: "Involving sacrilege; disrespectful.", sentence: "Defacing ancient monuments is sacrilegious." },
+        { uk: "scrutinise", us: "scrutinize", cefr: "C1–C2", type: "-ise/-ize", def: "Examine or inspect closely and thoroughly.", sentence: "Inspectors scrutinise all financial records." },
+        { uk: "serendipity", us: "serendipity", cefr: "C1–C2", type: "Standard", def: "The occurrence of happy events by chance.", sentence: "Meeting my old friend was pure serendipity." },
+        { uk: "sergeant", us: "sergeant", cefr: "C1–C2", type: "Standard", def: "A non-commissioned officer rank.", sentence: "The sergeant inspected the troops' gear." },
+        { uk: "silhouette", us: "silhouette", cefr: "C1–C2", type: "Standard", def: "The dark shape and outline of someone against light.", sentence: "The mountain silhouette looked sharp at sunset." },
+        { uk: "simultaneous", us: "simultaneous", cefr: "C1–C2", type: "Standard", def: "Occurring or done at the exact same time.", sentence: "Translators provided simultaneous translation." },
+        { uk: "sophisticated", us: "sophisticated", cefr: "C1–C2", type: "Standard", def: "Developed to a high degree of complexity.", sentence: "The aircraft uses a sophisticated radar system." },
+        { uk: "spectre", us: "specter", cefr: "C1–C2", type: "-re/-er", def: "A ghost or a haunting unpleasant prospect.", sentence: "The spectre of inflation loomed large." },
+        { uk: "stabilise", us: "stabilize", cefr: "C1–C2", type: "-ise/-ize", def: "Make or become unlikely to change or fail.", sentence: "Medication helped to stabilise blood pressure." },
+        { uk: "standardise", us: "standardize", cefr: "C1–C2", type: "-ise/-ize", def: "Cause something to conform to a standard.", sentence: "Schools work to standardise exam metrics." },
+        { uk: "subpoena", us: "subpoena", cefr: "C1–C2", type: "Standard", def: "A writ ordering a person to attend court.", sentence: "The witness received a court subpoena." },
+        { uk: "succinct", us: "succinct", cefr: "C1–C2", type: "Standard", def: "Briefly and clearly expressed.", sentence: "Please keep your summary clear and succinct." },
+        { uk: "sulphate", us: "sulfate", cefr: "C1–C2", type: "Spelling Variant", def: "A salt or ester of sulfuric acid.", sentence: "Copper sulphate crystals are bright blue." },
+        { uk: "supersede", us: "supersede", cefr: "C1–C2", type: "Standard", def: "Take the place of a person or thing previously used.", sentence: "New regulations will supersede old policies." },
+        { uk: "surveillance", us: "surveillance", cefr: "C1–C2", type: "Standard", def: "Close observation, especially of a suspected person.", sentence: "Security cameras provide 24-hour surveillance." },
+        { uk: "synonym", us: "synonym", cefr: "C1–C2", type: "Standard", def: "A word that means nearly the same as another.", sentence: "'Quick' is a synonym for 'fast'." },
+        { uk: "synthesise", us: "synthesize", cefr: "C1–C2", type: "-ise/-ize", def: "Combine a range of components into a whole.", sentence: "Students synthesise information from sources." },
+        { uk: "tendency", us: "tendency", cefr: "C1–C2", type: "Standard", def: "An inclination toward a particular characteristic.", sentence: "He has a tendency to speak rapidly." },
+        { uk: "threshold", us: "threshold", cefr: "C1–C2", type: "Standard", def: "A strip of wood or stone forming the bottom door frame.", sentence: "She paused at the doorway threshold." },
+        { uk: "tranquillise", us: "tranquilize", cefr: "C1–C2", type: "-ise/-ize", def: "Administer a tranquilizing drug to.", sentence: "Vets had to tranquillise the wild animal." },
+        { uk: "tranquillity", us: "tranquility", cefr: "C1–C2", type: "double L -> single L", def: "The quality or state of being calm.", sentence: "We enjoyed the peaceful lake tranquillity." },
+        { uk: "travelogue", us: "travelog", cefr: "C1–C2", type: "-ogue/-og", def: "A film or lecture about travel experiences.", sentence: "She published a travelogue about her journeys." },
+        { uk: "tyranny", us: "tyranny", cefr: "C1–C2", type: "Standard", def: "Cruel and oppressive government or rule.", sentence: "Citizens resisted foreign tyranny." },
+        { uk: "ubiquitous", us: "ubiquitous", cefr: "C1–C2", type: "Standard", def: "Present, appearing, or found everywhere.", sentence: "Mobile phones have become ubiquitous." },
+        { uk: "unanimous", us: "unanimous", cefr: "C1–C2", type: "Standard", def: "Fully in agreement.", sentence: "The committee voted in unanimous support." },
+        { uk: "unnecessary", us: "unnecessary", cefr: "C1–C2", type: "Standard", def: "Not needed.", sentence: "Avoid taking unnecessary risks." },
+        { uk: "vacuum", us: "vacuum", cefr: "C1–C2", type: "Standard", def: "A space entirely devoid of matter.", sentence: "Sound waves cannot travel in a vacuum." },
+        { uk: "valour", us: "valor", cefr: "C1–C2", type: "-our/-or", def: "Great courage in the face of danger.", sentence: "The soldier received a medal for valour." },
+        { uk: "vandalise", us: "vandalize", cefr: "C1–C2", type: "-ise/-ize", def: "Deliberately damage or destroy property.", sentence: "It is illegal to vandalise public property." },
+        { uk: "vengeance", us: "vengeance", cefr: "C1–C2", type: "Standard", def: "Punishment inflicted or retribution exacted.", sentence: "He sought vengeance for the injustice." },
+        { uk: "vicissitude", us: "vicissitude", cefr: "C1–C2", type: "Standard", def: "A change of circumstances, typically unwelcome.", sentence: "They endured the vicissitudes of life." },
+        { uk: "vigilance", us: "vigilance", cefr: "C1–C2", type: "Standard", def: "Keeping careful watch for possible danger.", sentence: "Constant vigilance prevents security breaches." },
+        { uk: "vignette", us: "vignette", cefr: "C1–C2", type: "Standard", def: "A brief evocative description or account.", sentence: "The novel opens with a memorable vignette." },
+        { uk: "weird", us: "weird", cefr: "C1–C2", type: "Standard", def: "Suggesting something supernatural; strange.", sentence: "A weird sound echoed through the hallway." },
+        { uk: "withhold", us: "withhold", cefr: "C1–C2", type: "Standard", def: "Refuse to give or grant something.", sentence: "Employers must not withhold earned pay." },
+        { uk: "xylophone", us: "xylophone", cefr: "C1–C2", type: "Standard", def: "A musical instrument with wooden bars.", sentence: "She played a melody on the wooden xylophone." },
+        { uk: "yacht", us: "yacht", cefr: "C1–C2", type: "Standard", def: "A medium-sized sailboat equipped for cruising.", sentence: "The yacht sailed smoothly across the bay." },
+        { uk: "zeitgeist", us: "zeitgeist", cefr: "C1–C2", type: "Standard", def: "The defining spirit or mood of an era.", sentence: "The film captured the 1960s cultural zeitgeist." },
+        { uk: "zephyr", us: "zephyr", cefr: "C1–C2", type: "Standard", def: "A soft, gentle breeze.", sentence: "A warm zephyr rustled the garden leaves." }
+      ]
+    };
+
+    function resetToOfficialWordList() {
+      try {
+        localStorage.removeItem('bulanBahasaWordBank');
+        localStorage.removeItem('bulanBahasaFileName');
+      } catch(e) {}
+
+      activeWordBank = JSON.parse(JSON.stringify(raw600WordDataset));
+      sessionUnplayedPools = { '1': [], '2': [], '3': [] };
+
+      const fileBadge = document.getElementById('fileLoadedBadge');
+      const inspectBtn = document.getElementById('inspectWordsBtn');
+      const dropzoneText = document.getElementById('dropzoneText');
+      const dropzoneStatus = document.getElementById('dropzoneStatusBadge');
+
+      if (fileBadge) fileBadge.classList.add('hidden');
+      if (inspectBtn) inspectBtn.classList.add('hidden');
+      if (dropzoneText) dropzoneText.innerHTML = 'Click or drag & drop <strong class="text-amber-400">SPELLING BEE BULAN BAHASA 2026.xlsx</strong> here';
+      if (dropzoneStatus) {
+        dropzoneStatus.textContent = 'XLSX / XLS';
+        dropzoneStatus.className = 'text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono';
+      }
+
+      setupWordQueueForLevel(gameState.currentLevel, gameState.roundLimit);
+      showToast('Reset to 100% Official Spreadsheet Word List!', 'success');
+    }
+
+    let activeWordBank = JSON.parse(JSON.stringify(raw600WordDataset));
+    let sessionUnplayedPools = { '1': [], '2': [], '3': [] };
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function setupWordQueueForLevel(lvl, count) {
+      const lvlKey = String(lvl);
+      const masterPool = activeWordBank[lvlKey] || raw600WordDataset[lvlKey] || [];
+      if (masterPool.length === 0) {
+        showToast('No words available for Level ' + lvl, 'error');
+        return;
+      }
+
+      // Populate session unplayed deck if empty
+      if (!sessionUnplayedPools[lvlKey] || sessionUnplayedPools[lvlKey].length === 0) {
+        sessionUnplayedPools[lvlKey] = shuffleArray([...masterPool]);
+      }
+
+      let roundWords = [];
+      const targetCount = Math.min(Math.max(1, parseInt(count) || 20), 200);
+
+      while (roundWords.length < targetCount) {
+        if (sessionUnplayedPools[lvlKey].length === 0) {
+          // Refill deck excluding words already in current round to prevent intra-round duplicates
+          let remaining = masterPool.filter(function(w) {
+            return !roundWords.some(function(rw) { return rw.uk === w.uk; });
+          });
+          if (remaining.length === 0) remaining = [...masterPool];
+          sessionUnplayedPools[lvlKey] = shuffleArray([...remaining]);
+        }
+        const nextWord = sessionUnplayedPools[lvlKey].pop();
+        if (nextWord) {
+          roundWords.push(nextWord);
+        }
+      }
+
+      gameState.words = roundWords;
+      gameState.currentIndex = 0;
+      gameState.currentWordData = gameState.words[0] || null;
+      gameState.roundLimit = targetCount;
+
+      const totalEl = document.getElementById('totalLevelWords');
+      if (totalEl) totalEl.textContent = targetCount;
+    }
+
+    function updateMidRoundWordLimit(newVal) {
+      const targetCount = Math.min(Math.max(1, parseInt(newVal) || 20), 200);
+      gameState.roundLimit = targetCount;
+      const lvlKey = String(gameState.currentLevel);
+      const masterPool = activeWordBank[lvlKey] || raw600WordDataset[lvlKey] || [];
+
+      if (targetCount < gameState.words.length) {
+        gameState.words = gameState.words.slice(0, Math.max(gameState.currentIndex + 1, targetCount));
+      } else if (targetCount > gameState.words.length) {
+        while (gameState.words.length < targetCount) {
+          if (!sessionUnplayedPools[lvlKey] || sessionUnplayedPools[lvlKey].length === 0) {
+            let remaining = masterPool.filter(function(w) {
+              return !gameState.words.some(function(rw) { return rw.uk === w.uk; });
+            });
+            if (remaining.length === 0) remaining = [...masterPool];
+            sessionUnplayedPools[lvlKey] = shuffleArray([...remaining]);
+          }
+          const nextWord = sessionUnplayedPools[lvlKey].pop();
+          if (nextWord) gameState.words.push(nextWord);
+        }
+      }
+
+      const totalEl = document.getElementById('totalLevelWords');
+      if (totalEl) totalEl.textContent = gameState.words.length;
+      showToast('Word limit updated to ' + gameState.words.length);
+    }
+
+    /* ENHANCED SMART EXCEL MATRIX PARSER */
+    function handleExcelUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(file);
+      reader.onload = function(evt) {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const parsed = { '1': [], '2': [], '3': [] };
+
+          workbook.SheetNames.forEach(function(sheetName, sheetIdx) {
+            const sNameLower = sheetName.toLowerCase().trim();
+            // Skip summary, overview, or info tabs
+            if (sNameLower.includes('summary') || sNameLower.includes('overview') || sNameLower.includes('instruction') || sNameLower.includes('info')) {
+              return;
+            }
+
+            // Determine target level for this sheet
+            let sheetLevel = '1';
+            if (sNameLower.includes('3') || sNameLower.includes('sma') || sNameLower.includes('advanced') || sNameLower.includes('hard')) {
+              sheetLevel = '3';
+            } else if (sNameLower.includes('2') || sNameLower.includes('smp') || sNameLower.includes('intermediate') || sNameLower.includes('medium')) {
+              sheetLevel = '2';
+            } else if (sNameLower.includes('1') || sNameLower.includes('sd') || sNameLower.includes('beginner') || sNameLower.includes('easy')) {
+              sheetLevel = '1';
+            }
+
+            const sheet = workbook.Sheets[sheetName];
+            const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+            if (!matrix || matrix.length === 0) return;
+
+            // Find true header row index (scanning up to row 15)
+            let headerRowIdx = -1;
+            let colMap = { uk: -1, us: -1, word: -1, level: -1, cefr: -1, type: -1, def: -1, sentence: -1 };
+
+            for (let r = 0; r < Math.min(matrix.length, 15); r++) {
+              const row = matrix[r];
+              if (!Array.isArray(row)) continue;
+
+              row.forEach(function(cell, cIdx) {
+                const val = String(cell || '').trim().toLowerCase();
+                if (!val) return;
+
+                if (val.includes('british') || val === 'uk' || val.includes('uk english') || val.includes('uk spelling')) {
+                  colMap.uk = cIdx;
+                } else if (val.includes('american') || val === 'us' || val.includes('us english') || val.includes('us spelling')) {
+                  colMap.us = cIdx;
+                } else if (val === 'word' || val === 'words' || val === 'spelling' || val === 'target' || val === 'kata' || val === 'kosa kata' || val === 'vocabulary') {
+                  colMap.word = cIdx;
+                } else if (val.includes('level') || val.includes('kategori') || val.includes('tier') || val.includes('grade')) {
+                  colMap.level = cIdx;
+                } else if (val.includes('cefr') || val.includes('band')) {
+                  colMap.cefr = cIdx;
+                } else if (val.includes('type') || val.includes('category') || val.includes('difference')) {
+                  colMap.type = cIdx;
+                } else if (val.includes('def') || val.includes('meaning') || val.includes('arti')) {
+                  colMap.def = cIdx;
+                } else if (val.includes('sentence') || val.includes('example') || val.includes('context') || val.includes('kalimat')) {
+                  colMap.sentence = cIdx;
+                }
+              });
+
+              if (colMap.uk !== -1 || colMap.us !== -1 || colMap.word !== -1) {
+                headerRowIdx = r;
+                break;
+              }
+            }
+
+            // Fallback: Default to column 0 if no explicit header found
+            if (headerRowIdx === -1) {
+              headerRowIdx = 0;
+              colMap.word = 0;
+            }
+
+            const startRow = headerRowIdx + 1;
+            for (let r = startRow; r < matrix.length; r++) {
+              const row = matrix[r];
+              if (!Array.isArray(row) || row.length === 0) continue;
+
+              const ukVal = colMap.uk !== -1 ? String(row[colMap.uk] || '').trim() : '';
+              const usVal = colMap.us !== -1 ? String(row[colMap.us] || '').trim() : '';
+              const wordVal = colMap.word !== -1 ? String(row[colMap.word] || '').trim() : '';
+
+              const cleanWord = ukVal || wordVal || usVal;
+              if (!cleanWord || cleanWord.length < 2 || cleanWord.toLowerCase().includes('word') || cleanWord.toLowerCase().includes('level')) continue;
+
+              const uk = ukVal || cleanWord;
+              const us = usVal || uk;
+
+              let targetLvl = sheetLevel;
+              if (colMap.level !== -1 && row[colMap.level]) {
+                const lvlRaw = String(row[colMap.level]).trim().toLowerCase();
+                if (lvlRaw.includes('3') || lvlRaw.includes('sma') || lvlRaw.includes('advanced') || lvlRaw.includes('hard')) targetLvl = '3';
+                else if (lvlRaw.includes('2') || lvlRaw.includes('smp') || lvlRaw.includes('intermediate') || lvlRaw.includes('medium')) targetLvl = '2';
+                else if (lvlRaw.includes('1') || lvlRaw.includes('sd') || lvlRaw.includes('beginner') || lvlRaw.includes('easy')) targetLvl = '1';
+              }
+
+              const cefr = colMap.cefr !== -1 ? String(row[colMap.cefr] || '').trim() : (targetLvl === '1' ? 'A1-A2' : targetLvl === '2' ? 'B1-B2' : 'C1-C2');
+              const type = colMap.type !== -1 ? String(row[colMap.type] || '').trim() : 'Bulan Bahasa Word';
+              const def = colMap.def !== -1 ? String(row[colMap.def] || '').trim() : 'Official Bulan Bahasa 2026 Spelling Word.';
+              const sentence = colMap.sentence !== -1 ? String(row[colMap.sentence] || '').trim() : '';
+
+              if (!parsed[targetLvl].some(function(w) { return w.uk.toLowerCase() === uk.toLowerCase(); })) {
+                parsed[targetLvl].push({
+                  uk: uk,
+                  us: us,
+                  cefr: cefr || 'Competition',
+                  type: type || 'Standard Vocabulary',
+                  def: def || 'Official Bulan Bahasa 2026 Spelling Word.',
+                  sentence: sentence
+                });
+              }
+            }
+          });
+
+          const totalParsed = parsed['1'].length + parsed['2'].length + parsed['3'].length;
+          if (totalParsed > 0) {
+            // Completely replace active word bank and default dataset
+            activeWordBank = parsed;
+            raw600WordDataset['1'] = parsed['1'];
+            raw600WordDataset['2'] = parsed['2'];
+            raw600WordDataset['3'] = parsed['3'];
+            sessionUnplayedPools = { '1': [], '2': [], '3': [] };
+
+            // Save to localStorage so words persist across reloads
+            try {
+              localStorage.setItem('bulanBahasaWordBank', JSON.stringify(parsed));
+              localStorage.setItem('bulanBahasaFileName', file.name);
+            } catch (err) { console.warn('LocalStorage save failed:', err); }
+
+            updateExcelUIBadges(file.name, parsed);
+            setupWordQueueForLevel(gameState.currentLevel, gameState.roundLimit);
+
+            if (!document.getElementById('gamePlayArea').classList.contains('hidden')) {
+              loadCurrentWord();
+            }
+            showToast('Word list REPLACED! Loaded ' + totalParsed + ' words from ' + file.name + '!', 'success');
+          } else {
+            showToast('No valid word columns detected in file.', 'error');
+          }
+        } catch(err) {
+          console.error(err);
+          showToast('Failed to parse Excel file.', 'error');
+        }
+      };
+    }
+
+    function updateExcelUIBadges(fileName, wordBank) {
+      const fileBadge = document.getElementById('fileLoadedBadge');
+      const inspectBtn = document.getElementById('inspectWordsBtn');
+      const dropzoneText = document.getElementById('dropzoneText');
+      const dropzoneStatus = document.getElementById('dropzoneStatusBadge');
+
+      const count1 = wordBank['1'] ? wordBank['1'].length : 0;
+      const count2 = wordBank['2'] ? wordBank['2'].length : 0;
+      const count3 = wordBank['3'] ? wordBank['3'].length : 0;
+      const total = count1 + count2 + count3;
+
+      if (fileBadge) {
+        fileBadge.textContent = 'Word List Replaced: ' + fileName + ' (' + total + ' words)';
+        fileBadge.classList.remove('hidden');
+      }
+      if (inspectBtn) inspectBtn.classList.remove('hidden');
+      if (dropzoneText) {
+        dropzoneText.innerHTML = 'REPLACED WORD LIST WITH <strong class="text-emerald-400">' + total + ' words</strong> from ' + fileName + '<br><span class="text-[11px] text-amber-300 font-mono">Level 1: ' + count1 + ' | Level 2: ' + count2 + ' | Level 3: ' + count3 + '</span>';
+      }
+      if (dropzoneStatus) {
+        dropzoneStatus.textContent = 'List Replaced';
+        dropzoneStatus.className = 'text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded font-mono font-bold';
+      }
+    }
+
+    function openWordBankInspector() {
+      const modal = document.getElementById('inspectorModal');
+      if (!modal) return;
+      filterInspectorWords();
+      modal.classList.remove('hidden');
+    }
+
+    function closeWordBankInspector() {
+      const modal = document.getElementById('inspectorModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function filterInspectorWords() {
+      const searchInput = document.getElementById('inspectorSearch');
+      const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+      const listEl = document.getElementById('inspectorWordsList');
+      const totalCountEl = document.getElementById('inspectorTotalCount');
+
+      let allWords = [];
+      ['1', '2', '3'].forEach(function(lvl) {
+        (activeWordBank[lvl] || []).forEach(function(w) {
+          allWords.push({ level: lvl, word: w });
+        });
+      });
+
+      if (totalCountEl) totalCountEl.textContent = allWords.length;
+
+      let filtered = allWords.filter(function(item) {
+        return item.word.uk.toLowerCase().includes(query) || item.word.us.toLowerCase().includes(query) || item.word.type.toLowerCase().includes(query);
+      });
+
+      if (listEl) {
+        if (filtered.length === 0) {
+          listEl.innerHTML = '<div class="text-center text-xs text-slate-500 py-6">No words match search filter</div>';
+        } else {
+          let html = '';
+          filtered.slice(0, 100).forEach(function(item, idx) {
+            const w = item.word;
+            html += `
+              <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+                <div class="flex items-center gap-2.5">
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${item.level === '1' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : item.level === '2' ? 'bg-amber-950 text-amber-400 border border-amber-800' : 'bg-rose-950 text-rose-400 border border-rose-800'}">L${item.level}</span>
+                  <div>
+                    <span class="font-bold text-white">${w.uk}</span>
+                    ${w.us !== w.uk ? '<span class="text-slate-400 font-normal"> / ' + w.us + '</span>' : ''}
+                    <div class="text-[10px] text-slate-500">${w.type || 'Standard'} • ${w.cefr || 'A1'}</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+          if (filtered.length > 100) {
+            html += '<div class="text-center text-[10px] text-slate-500 py-2">Showing first 100 words...</div>';
+          }
+          listEl.innerHTML = html;
+        }
+      }
+    }
+
+    /* ==================== GAME STATE & CORE LOGIC ==================== */
+    const gameState = {
+      currentLevel: 1,
+      roundLimit: 20,
+      showExtraHints: true,
+      soundFxEnabled: true,
+      selectedAccent: 'en-US',
+      targetMode: 'both', // 'both', 'uk', 'us'
+      words: [],
+      currentIndex: 0,
+      currentWordData: null,
+      score: 0,
+      correctCount: 0,
+      incorrectCount: 0,
+      results: [],
+      audioPlayCount: 0,
+      maxAudioPlays: 2,
+      timerInterval: null,
+      timerSeconds: 45,
+      maxTimer: 45,
+      masteryMode: false,
+      missedWords: []
+    };
+
+    /* AUDIO SYNTHESIZER FOR SOUND FX */
+    function playSoundEffect(type) {
+      if (!gameState.soundFxEnabled) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+
+        if (type === 'correct') {
+          const varType = Math.floor(Math.random() * 3);
+          const freqs = varType === 0 ? [523.25, 659.25, 783.99, 1046.50] :
+                        varType === 1 ? [587.33, 739.99, 880.00, 1174.66] :
+                        [440.00, 554.37, 659.25, 880.00];
+          freqs.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.15, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.25);
+          });
+        } else if (type === 'wrong') {
+          const varType = Math.floor(Math.random() * 3);
+          const freqPair = varType === 0 ? [180, 130] : varType === 1 ? [220, 160] : [150, 100];
+          freqPair.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.15);
+            gain.gain.setValueAtTime(0.2, now + idx * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.15 + 0.3);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + idx * 0.15);
+            osc.stop(now + idx * 0.15 + 0.3);
+          });
+        } else if (type === 'tick') {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(800, now);
+          gain.gain.setValueAtTime(0.05, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.04);
+        } else if (type === 'victory') {
+          [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+            gain.gain.setValueAtTime(0.2, now + idx * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.4);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + idx * 0.1);
+            osc.stop(now + idx * 0.1 + 0.4);
+          });
+        }
+      } catch (err) {
+        console.warn('Audio FX error:', err);
+      }
+    }
+
+    /* TOAST MESSAGES */
+    function showToast(msg, type) {
+      type = type || 'info';
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      const toastIcon = document.getElementById('toastIcon');
+      if (!toast || !toastMsg) return;
+
+      toastMsg.textContent = msg;
+      if (type === 'error') {
+        toastIcon.className = 'fa-solid fa-circle-exclamation text-rose-400';
+      } else if (type === 'success') {
+        toastIcon.className = 'fa-solid fa-circle-check text-emerald-400';
+      } else {
+        toastIcon.className = 'fa-solid fa-circle-info text-amber-400';
+      }
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(function() {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+
+    /* UI TOGGLES & CONTROLS */
+    function setTargetMode(mode) {
+      gameState.targetMode = mode;
+      ['Both', 'UK', 'US'].forEach(function(m) {
+        const btn = document.getElementById('targetMode' + m);
+        if (btn) {
+          if (m.toLowerCase() === mode) {
+            btn.className = 'px-2.5 py-1 rounded-lg transition bg-amber-500 text-slate-950 font-bold';
+          } else {
+            btn.className = 'px-2.5 py-1 rounded-lg transition text-slate-400 hover:text-white';
+          }
+        }
+      });
+      showToast('Spelling Target: ' + (mode === 'both' ? 'US or UK' : mode.toUpperCase() + ' only'));
+    }
+
+    function setAccent(accent) {
+      gameState.selectedAccent = accent;
+      const usBtn = document.getElementById('accentUS');
+      const ukBtn = document.getElementById('accentUK');
+      if (accent === 'en-US') {
+        if (usBtn) usBtn.className = 'px-2.5 py-1 rounded-lg transition bg-amber-500 text-slate-950 font-bold';
+        if (ukBtn) ukBtn.className = 'px-2.5 py-1 rounded-lg transition text-slate-400 hover:text-white';
+      } else {
+        if (ukBtn) ukBtn.className = 'px-2.5 py-1 rounded-lg transition bg-amber-500 text-slate-950 font-bold';
+        if (usBtn) usBtn.className = 'px-2.5 py-1 rounded-lg transition text-slate-400 hover:text-white';
+      }
+      showToast('Voice Accent: ' + (accent === 'en-US' ? 'American (US)' : 'British (UK)'));
+    }
+
+    function toggleExtraHints(val) {
+      gameState.showExtraHints = val;
+      const status = document.getElementById('hintNavStatus');
+      if (status) status.textContent = 'Hints: ' + (val ? 'ON' : 'OFF');
+    }
+
+    function toggleExtraHintsNav() {
+      gameState.showExtraHints = !gameState.showExtraHints;
+      const toggle = document.getElementById('setupHintsToggle');
+      if (toggle) toggle.checked = gameState.showExtraHints;
+      toggleExtraHints(gameState.showExtraHints);
+      showToast('Extra Clues: ' + (gameState.showExtraHints ? 'Enabled' : 'Disabled'));
+    }
+
+    function toggleSoundFx() {
+      gameState.soundFxEnabled = !gameState.soundFxEnabled;
+      const icon = document.getElementById('soundFxIcon');
+      if (icon) {
+        icon.className = gameState.soundFxEnabled ? 'fa-solid fa-volume-high text-amber-400' : 'fa-solid fa-volume-xmark text-slate-500';
+      }
+      showToast('Sound FX: ' + (gameState.soundFxEnabled ? 'Enabled' : 'Muted'));
+    }
+
+    function selectSetupLevel(lvl) {
+      gameState.currentLevel = lvl;
+      [1, 2, 3].forEach(function(l) {
+        const btn = document.getElementById('setupLvl' + l);
+        if (btn) {
+          if (l === lvl) {
+            btn.className = 'setup-lvl-btn border-2 border-amber-500 bg-amber-500/10 p-5 rounded-2xl text-left transition hover:border-amber-400';
+          } else {
+            btn.className = 'setup-lvl-btn border-2 border-slate-800 bg-slate-950/60 p-5 rounded-2xl text-left transition hover:border-amber-400';
+          }
+        }
+      });
+    }
+
+    function setWordLimitPreset(num) {
+      const input = document.getElementById('setupRoundLimitInput');
+      if (input) input.value = num;
+      gameState.roundLimit = num;
+    }
+
+    function toggleMidRoundSettingsPanel() {
+      const panel = document.getElementById('midRoundSettingsPanel');
+      if (panel) panel.classList.toggle('hidden');
+    }
+
+    function changeLevelMidRound(lvl) {
+      gameState.currentLevel = lvl;
+      [1, 2, 3].forEach(function(l) {
+        const btn = document.getElementById('midLevelBtn' + l);
+        if (btn) {
+          if (l === lvl) {
+            btn.className = 'flex-1 md:flex-initial px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-amber-500 text-slate-950';
+          } else {
+            btn.className = 'flex-1 md:flex-initial px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 bg-slate-800 text-slate-400 hover:text-white';
+          }
+        }
+      });
+      selectSetupLevel(lvl);
+      setupWordQueueForLevel(lvl, gameState.roundLimit);
+      gameState.score = 0;
+      gameState.correctCount = 0;
+      gameState.incorrectCount = 0;
+      gameState.results = [];
+      updateScoreboardUI();
+      loadCurrentWord();
+      showToast('Switched to Level ' + lvl);
+    }
+
+    /* GAMEPLAY ROUND SETUP & LOAD */
+    function startRoundFromSetup() {
+      const input = document.getElementById('setupRoundLimitInput');
+      const count = input ? parseInt(input.value) || 20 : 20;
+      gameState.roundLimit = count;
+      gameState.masteryMode = false;
+
+      setupWordQueueForLevel(gameState.currentLevel, gameState.roundLimit);
+
+      gameState.score = 0;
+      gameState.correctCount = 0;
+      gameState.incorrectCount = 0;
+      gameState.results = [];
+
+      document.getElementById('setupArea').classList.add('hidden');
+      document.getElementById('summaryArea').classList.add('hidden');
+      document.getElementById('gamePlayArea').classList.remove('hidden');
+
+      updateScoreboardUI();
+      loadCurrentWord();
+    }
+
+    function returnToSetup() {
+      clearInterval(gameState.timerInterval);
+      document.getElementById('gamePlayArea').classList.add('hidden');
+      document.getElementById('summaryArea').classList.add('hidden');
+      document.getElementById('setupArea').classList.remove('hidden');
+    }
+
+    function updateScoreboardUI() {
+      document.getElementById('statCorrect').textContent = gameState.correctCount;
+      document.getElementById('statIncorrect').textContent = gameState.incorrectCount;
+      document.getElementById('statScore').textContent = gameState.score;
+    }
+
+    function loadCurrentWord() {
+      clearInterval(gameState.timerInterval);
+      document.getElementById('feedbackCard').classList.add('hidden');
+      document.getElementById('spellingInput').value = '';
+      document.getElementById('spellingInput').disabled = false;
+      document.getElementById('submitBtn').disabled = false;
+      document.getElementById('spellingInput').focus();
+
+      if (gameState.currentIndex >= gameState.words.length) {
+        showSummary();
+        return;
+      }
+
+      const wordData = gameState.words[gameState.currentIndex];
+      gameState.currentWordData = wordData;
+      gameState.audioPlayCount = 0;
+
+      document.getElementById('currentWordIndex').textContent = gameState.currentIndex + 1;
+      document.getElementById('totalLevelWords').textContent = gameState.words.length;
+      document.getElementById('diffTypeText').textContent = wordData.type || 'Standard Vocabulary';
+
+      updateAudioBadgeUI();
+      startTimer();
+
+      // Auto play audio once on word load without deducting replay limit
+      playCurrentWordAudio(1.0, true);
+    }
+
+    /* AUDIO PLAYBACK */
+    function playCurrentWordAudio(rate, isAutoPlay) {
+      rate = typeof rate === 'number' ? rate : 1.0;
+      isAutoPlay = Boolean(isAutoPlay);
+
+      if (!gameState.currentWordData) return;
+
+      if (!isAutoPlay) {
+        if (gameState.audioPlayCount >= gameState.maxAudioPlays) {
+          showToast('Replay limit reached (2 / 2 plays used)', 'error');
+          return;
+        }
+        gameState.audioPlayCount++;
+        updateAudioBadgeUI();
+      }
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        
+        // Choose target word based on selected voice accent or fallback
+        const wordToSpeak = gameState.selectedAccent === 'en-US' ? 
+          (gameState.currentWordData.us || gameState.currentWordData.uk) : 
+          (gameState.currentWordData.uk || gameState.currentWordData.us);
+
+        const utterance = new SpeechSynthesisUtterance(wordToSpeak);
+        utterance.rate = rate;
+        utterance.lang = gameState.selectedAccent;
+
+        const voices = window.speechSynthesis.getVoices();
+        const matchingVoice = voices.find(v => v.lang.includes(gameState.selectedAccent.replace('-', '_')) || v.lang.includes(gameState.selectedAccent));
+        if (matchingVoice) utterance.voice = matchingVoice;
+
+        const icon = document.getElementById('audioIcon');
+        if (icon) icon.className = 'fa-solid fa-volume-high text-3xl sm:text-4xl animate-pulse';
+
+        utterance.onend = function() {
+          if (icon) icon.className = 'fa-solid fa-volume-high text-3xl sm:text-4xl';
+        };
+        utterance.onerror = function() {
+          if (icon) icon.className = 'fa-solid fa-volume-high text-3xl sm:text-4xl';
+        };
+
+        window.speechSynthesis.speak(utterance);
+      } else {
+        showToast('Speech Synthesis not supported in this browser.', 'error');
+      }
+    }
+
+    function updateAudioBadgeUI() {
+      const remaining = Math.max(0, gameState.maxAudioPlays - gameState.audioPlayCount);
+      const badge = document.getElementById('audioPlayBadge');
+      const normalBtn = document.getElementById('playAudioBtn');
+      const slowBtn = document.getElementById('playSlowBtn');
+
+      if (badge) {
+        badge.textContent = remaining + ' / ' + gameState.maxAudioPlays + ' Plays Left';
+        if (remaining === 0) {
+          badge.className = 'bg-rose-950/40 text-rose-300 border border-rose-800/50 px-2 py-0.5 rounded-md text-xs font-bold';
+        } else {
+          badge.className = 'bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-md text-xs font-bold';
+        }
+      }
+
+      if (remaining === 0) {
+        if (normalBtn) normalBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        if (slowBtn) slowBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      } else {
+        if (normalBtn) normalBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        if (slowBtn) slowBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    /* TIMER LOGIC */
+    function startTimer() {
+      clearInterval(gameState.timerInterval);
+      gameState.timerSeconds = gameState.maxTimer;
+      updateTimerUI();
+
+      gameState.timerInterval = setInterval(function() {
+        gameState.timerSeconds--;
+        updateTimerUI();
+
+        if (gameState.timerSeconds <= 5 && gameState.timerSeconds > 0) {
+          playSoundEffect('tick');
+        }
+
+        if (gameState.timerSeconds <= 0) {
+          clearInterval(gameState.timerInterval);
+          skipWord(true); // Auto-timeout
+        }
+      }, 1000);
+    }
+
+    function updateTimerUI() {
+      const text = document.getElementById('timerText');
+      const circle = document.getElementById('timerCircle');
+      if (text) text.textContent = gameState.timerSeconds;
+
+      if (circle) {
+        const perimeter = 251.2;
+        const offset = perimeter - (gameState.timerSeconds / gameState.maxTimer) * perimeter;
+        circle.style.strokeDashoffset = offset;
+
+        if (gameState.timerSeconds <= 10) {
+          circle.setAttribute('stroke', '#f43f5e'); // Rose
+        } else if (gameState.timerSeconds <= 20) {
+          circle.setAttribute('stroke', '#fbbf24'); // Amber
+        } else {
+          circle.setAttribute('stroke', '#10b981'); // Emerald
+        }
+      }
+    }
+
+    /* EVALUATION & SEQUENCE ALIGNMENT DIFF */
+    function alignStrings(seq1, seq2) {
+      const s1 = (seq1 || '').toLowerCase();
+      const s2 = (seq2 || '').toLowerCase();
+      const m = s1.length;
+      const n = s2.length;
+
+      const score = [];
+      for (let i = 0; i <= m; i++) {
+        score[i] = [];
+        for (let j = 0; j <= n; j++) {
+          score[i][j] = 0;
+        }
+      }
+
+      for (let i = 0; i <= m; i++) score[i][0] = i * -1;
+      for (let j = 0; j <= n; j++) score[0][j] = j * -1;
+
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          const match = s1[i - 1] === s2[j - 1] ? 2 : -1;
+          score[i][j] = Math.max(
+            score[i - 1][j - 1] + match,
+            score[i - 1][j] - 1,
+            score[i][j - 1] - 1
+          );
+        }
+      }
+
+      let i = m;
+      let j = n;
+      const align1 = [];
+      const align2 = [];
+
+      while (i > 0 || j > 0) {
+        if (i > 0 && j > 0 && (s1[i - 1] === s2[j - 1])) {
+          align1.unshift(seq1[i - 1]);
+          align2.unshift(seq2[j - 1]);
+          i--; j--;
+        } else if (i > 0 && j > 0 && score[i][j] === score[i - 1][j - 1] + (s1[i - 1] === s2[j - 1] ? 2 : -1)) {
+          align1.unshift(seq1[i - 1]);
+          align2.unshift(seq2[j - 1]);
+          i--; j--;
+        } else if (i > 0 && score[i][j] === score[i - 1][j] - 1) {
+          align1.unshift(seq1[i - 1]);
+          align2.unshift('-');
+          i--;
+        } else {
+          align1.unshift('-');
+          align2.unshift(seq2[j - 1]);
+          j--;
+        }
+      }
+
+      return { alignedGuess: align1, alignedTarget: align2 };
+    }
+
+    function evaluateSubmission(e) {
+      if (e) e.preventDefault();
+      clearInterval(gameState.timerInterval);
+
+      const input = document.getElementById('spellingInput');
+      const userGuess = (input ? input.value : '').trim();
+
+      if (!userGuess) {
+        showToast('Please type a spelling before submitting.', 'error');
+        startTimer();
+        return;
+      }
+
+      const wordData = gameState.currentWordData;
+      if (!wordData) return;
+
+      const cleanGuess = userGuess.toLowerCase();
+      const cleanUk = (wordData.uk || '').toLowerCase();
+      const cleanUs = (wordData.us || '').toLowerCase();
+
+      let isCorrect = false;
+      let closestTarget = wordData.uk;
+
+      if (gameState.targetMode === 'both') {
+        isCorrect = (cleanGuess === cleanUk || cleanGuess === cleanUs);
+        if (cleanGuess === cleanUs) closestTarget = wordData.us;
+        else if (cleanGuess === cleanUk) closestTarget = wordData.uk;
+        else {
+          // Find closest target for diff alignment
+          const diffUk = Math.abs(cleanGuess.length - cleanUk.length);
+          const diffUs = Math.abs(cleanGuess.length - cleanUs.length);
+          closestTarget = diffUs < diffUk ? wordData.us : wordData.uk;
+        }
+      } else if (gameState.targetMode === 'uk') {
+        isCorrect = (cleanGuess === cleanUk);
+        closestTarget = wordData.uk;
+      } else if (gameState.targetMode === 'us') {
+        isCorrect = (cleanGuess === cleanUs);
+        closestTarget = wordData.us;
+      }
+
+      if (isCorrect) {
+        gameState.score += 10;
+        gameState.correctCount++;
+        playSoundEffect('correct');
+      } else {
+        gameState.incorrectCount++;
+        playSoundEffect('wrong');
+      }
+
+      gameState.results.push({
+        wordData: wordData,
+        userGuess: userGuess,
+        isCorrect: isCorrect,
+        targetWord: closestTarget,
+        isSkipped: false
+      });
+
+      updateScoreboardUI();
+      showFeedbackCard(isCorrect, userGuess, closestTarget, wordData);
+    }
+
+    function skipWord(isTimeout) {
+      clearInterval(gameState.timerInterval);
+      const wordData = gameState.currentWordData;
+      if (!wordData) return;
+
+      gameState.incorrectCount++;
+      playSoundEffect('wrong');
+
+      const target = gameState.targetMode === 'us' ? wordData.us : wordData.uk;
+
+      gameState.results.push({
+        wordData: wordData,
+        userGuess: isTimeout ? '(Time Out)' : '(Skipped)',
+        isCorrect: false,
+        targetWord: target,
+        isSkipped: true
+      });
+
+      updateScoreboardUI();
+      showFeedbackCard(false, isTimeout ? 'Time Expired' : 'Skipped', target, wordData);
+    }
+
+    function showFeedbackCard(isCorrect, userGuess, targetWord, wordData) {
+      const card = document.getElementById('feedbackCard');
+      const badge = document.getElementById('feedbackBadge');
+      const ukDisplay = document.getElementById('ukWordDisplay');
+      const usDisplay = document.getElementById('usWordDisplay');
+      const diffOutput = document.getElementById('diffOutput');
+      const input = document.getElementById('spellingInput');
+      const submitBtn = document.getElementById('submitBtn');
+
+      if (input) input.disabled = true;
+      if (submitBtn) submitBtn.disabled = true;
+
+      if (ukDisplay) ukDisplay.textContent = wordData.uk || '-';
+      if (usDisplay) usDisplay.textContent = wordData.us || '-';
+
+      if (badge) {
+        if (isCorrect) {
+          badge.className = 'flex items-center gap-2 text-base font-bold text-emerald-400';
+          badge.innerHTML = '<i class="fa-solid fa-circle-check text-xl"></i> <span>Correct Spelling! (+10 pts)</span>';
+        } else {
+          badge.className = 'flex items-center gap-2 text-base font-bold text-rose-400';
+          badge.innerHTML = '<i class="fa-solid fa-circle-xmark text-xl"></i> <span>Incorrect Spelling</span>';
+        }
+      }
+
+      // Generate sequence alignment character diff
+      if (diffOutput) {
+        const alignment = alignStrings(userGuess, targetWord);
+        let guessHtml = '<div class="flex items-center gap-1 mb-2"><span class="text-xs text-slate-400 w-24 shrink-0 font-sans">Your Guess:</span><div class="flex flex-wrap gap-1">';
+        let targetHtml = '<div class="flex items-center gap-1"><span class="text-xs text-slate-400 w-24 shrink-0 font-sans">Target Word:</span><div class="flex flex-wrap gap-1">';
+
+        for (let idx = 0; idx < alignment.alignedGuess.length; idx++) {
+          const gChar = alignment.alignedGuess[idx];
+          const tChar = alignment.alignedTarget[idx];
+
+          if (gChar.toLowerCase() === tChar.toLowerCase()) {
+            guessHtml += '<span class="bg-emerald-950 text-emerald-300 font-bold px-1.5 py-0.5 rounded border border-emerald-800/60">' + gChar + '</span>';
+            targetHtml += '<span class="bg-emerald-950 text-emerald-300 font-bold px-1.5 py-0.5 rounded border border-emerald-800/60">' + tChar + '</span>';
+          } else {
+            if (gChar !== '-') {
+              guessHtml += '<span class="line-through bg-rose-950 text-rose-300 px-1.5 py-0.5 rounded border border-rose-800/60">' + gChar + '</span>';
+            } else {
+              guessHtml += '<span class="text-slate-600 px-1.5 py-0.5">•</span>';
+            }
+
+            if (tChar !== '-') {
+              targetHtml += '<span class="bg-amber-950 text-amber-300 font-bold px-1.5 py-0.5 rounded border border-amber-800/60">' + tChar + '</span>';
+            } else {
+              targetHtml += '<span class="text-slate-600 px-1.5 py-0.5">•</span>';
+            }
+          }
+        }
+
+        guessHtml += '</div></div>';
+        targetHtml += '</div></div>';
+
+        diffOutput.innerHTML = guessHtml + targetHtml;
+      }
+
+      if (card) card.classList.remove('hidden');
+
+      const nextBtn = document.getElementById('nextWordBtn');
+      if (nextBtn) nextBtn.focus();
+    }
+
+    function advanceToNextWord() {
+      gameState.currentIndex++;
+      loadCurrentWord();
+    }
+
+    /* DICTIONARY & SENTENCE MODAL CONTROLLERS */
+    function openHintModal() {
+      const modal = document.getElementById('hintModal');
+      const content = document.getElementById('hintModalContent');
+      if (!modal || !content) return;
+
+      const wordData = gameState.currentWordData;
+      if (!wordData) return;
+
+      content.innerHTML = `
+        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">CEFR Band: ${wordData.cefr || 'A1'}</span>
+            <span class="text-xs font-semibold text-slate-400">${wordData.type || 'Standard'}</span>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400 font-bold uppercase mb-1">Definition:</div>
+            <div class="text-sm text-slate-200 leading-relaxed font-medium">${wordData.def || 'Standard vocabulary word.'}</div>
+          </div>
+          ${gameState.showExtraHints ? `
+            <div class="pt-2 border-t border-slate-900 flex items-center justify-between text-xs text-slate-400">
+              <span>UK Length: <strong class="text-white">${wordData.uk ? wordData.uk.length : 0} letters</strong></span>
+              <span>US Length: <strong class="text-white">${wordData.us ? wordData.us.length : 0} letters</strong></span>
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeHintModal() {
+      const modal = document.getElementById('hintModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function openExampleSentenceModal() {
+      const modal = document.getElementById('sentenceModal');
+      const content = document.getElementById('sentenceModalContent');
+      if (!modal || !content) return;
+
+      const wordData = gameState.currentWordData;
+      if (!wordData) return;
+
+      let rawSentence = wordData.sentence || '';
+      if (!rawSentence) {
+        rawSentence = 'The student was asked to spell the word in the competition context.';
+      }
+
+      // Replace word occurrences with blank _______
+      let maskedSentence = rawSentence;
+      if (wordData.uk) {
+        const regexUk = new RegExp('\\b' + wordData.uk + '\\b', 'gi');
+        maskedSentence = maskedSentence.replace(regexUk, '_______');
+      }
+      if (wordData.us && wordData.us !== wordData.uk) {
+        const regexUs = new RegExp('\\b' + wordData.us + '\\b', 'gi');
+        maskedSentence = maskedSentence.replace(regexUs, '_______');
+      }
+
+      content.innerHTML = `
+        <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800">
+          <div class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">Context Sentence:</div>
+          <blockquote class="text-base sm:text-lg text-slate-200 font-medium italic border-l-4 border-amber-500 pl-4 py-1 leading-relaxed">
+            "${maskedSentence}"
+          </blockquote>
+          <p class="text-[11px] text-slate-400 mt-3">Notice the position of <code class="text-amber-400 font-mono">_______</code> to deduce context and usage.</p>
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeExampleSentenceModal() {
+      const modal = document.getElementById('sentenceModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    /* SUMMARY & MASTERY MODE */
+    function showSummary() {
+      clearInterval(gameState.timerInterval);
+      document.getElementById('gamePlayArea').classList.add('hidden');
+      document.getElementById('summaryArea').classList.remove('hidden');
+
+      const total = gameState.results.length;
+      const correct = gameState.correctCount;
+      const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+      document.getElementById('summaryAccuracy').textContent = accuracy + '%';
+      document.getElementById('summaryScore').textContent = gameState.score;
+      document.getElementById('summaryCorrect').textContent = gameState.correctCount;
+      document.getElementById('summaryIncorrect').textContent = gameState.incorrectCount;
+      document.getElementById('summaryWordCount').textContent = total + ' Words Attempted';
+
+      if (accuracy >= 80) playSoundEffect('victory');
+
+      // Populate detailed word log
+      const list = document.getElementById('summaryWordsList');
+      if (list) {
+        let html = '';
+        gameState.results.forEach(function(r, idx) {
+          const isOk = r.isCorrect;
+          html += `
+            <div class="flex items-center justify-between p-3 rounded-xl ${isOk ? 'bg-emerald-950/30 border border-emerald-900/40' : 'bg-rose-950/30 border border-rose-900/40'}">
+              <div class="flex items-center gap-3">
+                <span class="text-xs font-bold w-6 ${isOk ? 'text-emerald-400' : 'text-rose-400'}">#${idx + 1}</span>
+                <div>
+                  <div class="text-sm font-bold text-white">${r.wordData.uk} ${r.wordData.us !== r.wordData.uk ? '<span class="text-xs text-slate-400 font-normal">/ ' + r.wordData.us + '</span>' : ''}</div>
+                  <div class="text-xs ${isOk ? 'text-emerald-300' : 'text-rose-300'}">You wrote: <span class="font-mono">${r.userGuess}</span></div>
+                </div>
+              </div>
+              <span class="text-xs font-bold px-2.5 py-1 rounded-lg ${isOk ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'}">
+                ${isOk ? 'Correct' : r.isSkipped ? 'Skipped' : 'Incorrect'}
+              </span>
+            </div>
+          `;
+        });
+        list.innerHTML = html;
+      }
+
+      // Mastery Mode Button trigger
+      const missed = gameState.results.filter(r => !r.isCorrect).map(r => r.wordData);
+      gameState.missedWords = missed;
+      const masteryBtn = document.getElementById('masteryBtn');
+
+      if (masteryBtn) {
+        if (missed.length > 0) {
+          masteryBtn.classList.remove('hidden');
+          masteryBtn.querySelector('span') ? masteryBtn.querySelector('span').textContent = `Mastery Mode (Repeat ${missed.length} Wrong Words)` : null;
+        } else {
+          masteryBtn.classList.add('hidden');
+        }
+      }
+
+      // Launch Confetti if perfect score
+      if (accuracy === 100 && total > 0 && typeof confetti === 'function') {
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      }
+    }
+
+    function startMasteryMode() {
+      if (!gameState.missedWords || gameState.missedWords.length === 0) return;
+
+      gameState.words = [...gameState.missedWords];
+      gameState.currentIndex = 0;
+      gameState.roundLimit = gameState.words.length;
+      gameState.score = 0;
+      gameState.correctCount = 0;
+      gameState.incorrectCount = 0;
+      gameState.results = [];
+      gameState.masteryMode = true;
+
+      document.getElementById('summaryArea').classList.add('hidden');
+      document.getElementById('gamePlayArea').classList.remove('hidden');
+
+      updateScoreboardUI();
+      loadCurrentWord();
+      showToast('Mastery Mode Started: ' + gameState.words.length + ' missed words');
+    }
+
+    /* KEYBOARD SHORTCUT HANDLERS */
+    document.addEventListener('keydown', function(e) {
+      // Escape closes open modals
+      if (e.key === 'Escape') {
+        closeHintModal();
+        closeExampleSentenceModal();
+        return;
+      }
+
+      // Alt keyboard shortcuts
+      if (e.altKey) {
+        if (e.key.toLowerCase() === 'a') {
+          e.preventDefault();
+          playCurrentWordAudio(1.0, false);
+        } else if (e.key.toLowerCase() === 's') {
+          e.preventDefault();
+          playCurrentWordAudio(0.5, false);
+        } else if (e.key.toLowerCase() === 'h') {
+          e.preventDefault();
+          openHintModal();
+        } else if (e.key.toLowerCase() === 'e') {
+          e.preventDefault();
+          openExampleSentenceModal();
+        }
+        return;
+      }
+
+      // Space key outside input triggers audio playback or advances
+      const feedbackCard = document.getElementById('feedbackCard');
+      const isFeedbackVisible = feedbackCard && !feedbackCard.classList.contains('hidden');
+      const activeEl = document.activeElement;
+      const isInputFocused = activeEl && activeEl.tagName === 'INPUT';
+
+      if (e.key === ' ' && !isInputFocused) {
+        e.preventDefault();
+        if (isFeedbackVisible) {
+          advanceToNextWord();
+        } else {
+          playCurrentWordAudio(1.0, false);
+        }
+      }
+
+      // Enter key when feedback card is visible advances to next word
+      if (e.key === 'Enter' && isFeedbackVisible) {
+        e.preventDefault();
+        advanceToNextWord();
+      }
+    });
+
+    /* INITIALIZATION ON WINDOW LOAD */
+    window.onload = function() {
+      selectSetupLevel(1);
+      setTargetMode('both');
+      setAccent('en-US');
+
+      // Auto-restore saved Excel Word Bank from localStorage if present
+      try {
+        const saved = localStorage.getItem('bulanBahasaWordBank');
+        const savedName = localStorage.getItem('bulanBahasaFileName') || 'SPELLING BEE BULAN BAHASA 2026_2.xlsx';
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed['1'] || parsed['2'] || parsed['3']) {
+            activeWordBank = parsed;
+            updateExcelUIBadges(savedName, parsed);
+            setupWordQueueForLevel(1, gameState.roundLimit);
+            showToast('Loaded saved word bank from ' + savedName, 'success');
+          }
+        }
+      } catch (e) { console.warn('Could not load saved word bank:', e); }
+    };
+  </script>
+</body>
+</html>
